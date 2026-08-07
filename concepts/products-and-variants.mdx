@@ -1,0 +1,91 @@
+---
+title: "Products, Variants, and SKUs in Blinks Inventory"
+sidebarTitle: "Products & Variants"
+description: "Learn how Blinks Inventory organizes products, variants, and SKUs to let you manage every item you sell or stock."
+---
+
+Every item you sell, stock, or track in Blinks Inventory exists within a three-level hierarchy: a **product** at the top, one or more **variants** beneath it, and a unique **SKU** that identifies each variant for tracking purposes. This structure is flexible enough to handle a simple catalog with a handful of items as well as a complex assortment with thousands of combinations of sizes, colors, and configurations — all without duplicating data or losing traceability. Understanding how these three levels relate to each other is the first step to building a well-organized catalog in Blinks.
+
+## The Product Hierarchy
+
+| Level | What It Represents | Example |
+|---|---|---|
+| **Product** | The top-level item — a general thing you sell or stock | `Classic T-Shirt` |
+| **Variant** | A specific version of that product defined by one or more attributes | `Classic T-Shirt / Large / Blue` |
+| **SKU** | A unique identifier assigned to a specific variant, used for all tracking | `TSHIRT-LG-BLU` |
+
+Every product must have at least one variant, and every variant must have a SKU. If your product has no meaningful variants — for example, a single-size printed poster — you still create one variant (often called `Default`) with its own SKU.
+
+## Products
+
+A product is the parent container for a group of related variants. It holds information that is shared across all its variants:
+
+- **Product name** — the display name used in the dashboard, reports, and order documents (for example, `Classic T-Shirt`).
+- **Description** — a free-text description for internal reference or use in integrations.
+- **Category** — assigns the product to a category (for example, `Apparel > Tops`). Categories are used to filter the catalog, generate category-level reports, and group products in integrations.
+- **Tags** — free-form labels you can add to a product to support custom filtering (for example, `summer-2024`, `clearance`, `bundle-eligible`).
+
+Products themselves do not have stock levels. Stock is always tracked at the variant (SKU) level.
+
+## Variants
+
+A variant represents one specific, purchasable or stockable version of a product. Each variant is defined by one or more **attributes** — characteristics that distinguish it from other variants of the same product.
+
+Common attribute types include:
+
+- **Size** (for example, XS, S, M, L, XL, or numeric sizing)
+- **Color** (for example, Blue, Red, Natural)
+- **Material** (for example, Cotton, Polyester)
+- **Configuration** (for example, 500ml, 1L, 5L for a liquid product)
+
+You define attribute names and values yourself in Blinks — the system does not enforce a fixed set of attribute types, so you can model any product type.
+
+<Note>
+  Each combination of attribute values creates a distinct variant. A T-Shirt with 4 sizes and 5 colors has up to 20 variants, each with its own SKU and its own independent stock level.
+</Note>
+
+## SKUs (Stock Keeping Units)
+
+A SKU is the unique identifier that Blinks uses to track inventory at the most granular level. Every stock movement, purchase order line, sales order line, and inventory record references a SKU — not a product name.
+
+SKUs must be **unique across your entire catalog**. You define them yourself, but a consistent naming convention makes your catalog much easier to manage. Common patterns include:
+
+- `[CATEGORY]-[SIZE]-[COLOR]` → `TSHIRT-LG-BLU`
+- `[SUPPLIER_CODE]-[INTERNAL_ID]` → `ACM-00427`
+- `[PRODUCT_SHORT]-[VARIANT_HASH]` → `POLO-4XBL`
+
+<Tip>
+  Choose your SKU format before you start importing or creating products. Changing SKUs after they appear on orders, movement records, and integrations is disruptive and requires careful coordination.
+</Tip>
+
+## Barcode and UPC Fields
+
+Each variant supports two scan codes alongside the SKU:
+
+- **Barcode** — an arbitrary scan code you define, often matching the code physically printed on the item or its packaging.
+- **UPC (Universal Product Code)** — the 12-digit industry-standard code, typically used for retail or wholesale products sold through third-party channels.
+
+Both fields are optional but recommended if your team scans items during receiving, picking, or cycle counts. Blinks lets you look up a variant by scanning either its SKU barcode, its custom barcode, or its UPC.
+
+## Cost Price and Selling Price
+
+Each variant stores two price fields:
+
+- **Cost price** — what you pay to procure or produce one unit of the variant. Used in inventory valuation, margin calculations, and purchase order prefilling.
+- **Selling price** — the default price at which you sell one unit. Used on sales orders as the prefilled unit price (which you can override per order line).
+
+Neither price field affects stock tracking directly, but accurate cost prices are essential for meaningful inventory valuation reports and for understanding your gross margin per SKU.
+
+## Product Categories and Tags
+
+**Categories** form a structured hierarchy that you define under **Settings > Categories**. You might set up a hierarchy like `Apparel > Tops > T-Shirts` or `Food & Beverage > Oils > Olive Oil`. Categories power:
+
+- Catalog browsing and filtering in the dashboard
+- Category-level inventory and sales reports
+- Grouping in integrations that sync your catalog to an e-commerce platform
+
+**Tags** are free-form and unstructured. Add as many tags as you like to a product to support ad-hoc filtering, bulk actions, or custom logic in your integrations. Unlike categories, tags do not form a hierarchy and a product can have any number of them.
+
+<Info>
+  Tags and categories serve different purposes. Use categories for your permanent, structured taxonomy and tags for temporary labels, campaigns, or contextual groupings that change over time.
+</Info>

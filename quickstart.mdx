@@ -1,47 +1,121 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "Get Started with Blinks Inventory in 5 Minutes"
+sidebarTitle: "Quickstart"
+description: "Learn how to set up Blinks Inventory, add your first product, and check stock levels in under 5 minutes."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
-
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
-
-## Prerequisites
-
-Before you begin, you must have:
-
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
-
-## Get started
+This quickstart walks you through everything you need to go from a blank account to a live inventory record — and your first successful API call. You will create a warehouse, add a product with a SKU, configure a reorder point, and query the inventory endpoint to confirm everything is working. The whole process takes less than five minutes, and you will not need to install anything locally except a terminal.
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
 
-    ```bash
-    npm install your-package
-    ```
-  </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
+  ### Sign Up at app.blinks.it
 
-    ```bash
-    your-cli init
-    ```
-  </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
+  Navigate to [app.blinks.it](https://app.blinks.it) and click **Get Started Free**. Enter your work email address and choose a password, then verify your email using the confirmation link Blinks sends you.
 
-    ```bash
-    your-cli start
-    ```
-  </Step>
+  Once you confirm your email, you are taken directly to the onboarding flow where you will name your organization and choose your primary timezone and currency. These settings can be changed later under **Settings > Organization**.
+
+  <Note>
+    If your company already has a Blinks account, ask your Admin to invite you instead of creating a new organization. Joining an existing organization gives you access to all existing products, warehouses, and orders.
+  </Note>
+
+  ### Create Your First Warehouse
+
+  After completing onboarding, go to **Warehouses** in the left sidebar and click **New Warehouse**.
+
+  Fill in the following fields:
+
+  - **Name** — a human-readable label, for example `Main Warehouse` or `London DC`.
+  - **Address** — the physical address of the facility (used on purchase orders and shipping documents).
+  - **Default warehouse** — toggle this on if this will be your primary stock location.
+
+  Click **Save**. Your warehouse now appears in the warehouse list and is ready to receive stock.
+
+  ### Add a Product with a SKU
+
+  Go to **Products** in the sidebar and click **New Product**. Enter a product name — for example, `Classic T-Shirt` — and click **Save**.
+
+  You are taken to the product detail page. Under the **Variants** section, click **Add Variant** and fill in:
+
+  - **Variant name** — for example, `Large / Blue`.
+  - **SKU** — a unique identifier you control, for example `TSHIRT-LG-BLU`. SKUs must be unique across your entire catalog.
+  - **Barcode / UPC** — optional, but recommended if you scan items during receiving.
+  - **Cost price** and **Selling price** — used in inventory valuation and order documents.
+
+  Click **Save Variant**. Blinks creates the SKU and sets its initial stock level to zero at all warehouses.
+
+  <Tip>
+    Use a consistent SKU naming convention from the start — for example `[CATEGORY]-[SIZE]-[COLOR]`. Changing SKUs later requires updating every order and integration that references them.
+  </Tip>
+
+  ### Set a Reorder Point
+
+  On the variant detail page, find the **Stock Settings** section and click **Edit**.
+
+  Set the following fields for your warehouse:
+
+  - **Reorder point** — the quantity at which Blinks triggers a low-stock alert. For example, `10`.
+  - **Reorder quantity** — the suggested purchase quantity when you reorder. For example, `50`.
+
+  Click **Save**. When available stock falls to or below the reorder point, Blinks will show an alert in the dashboard and — if you have notifications configured — send you an email or webhook event.
+
+  ### Make Your First API Call
+
+  Now that your warehouse and SKU are set up, confirm everything is accessible via the API. Open a terminal and run the following request, replacing `YOUR_API_KEY` with the key from **Settings > API Keys**.
+
+  <Note>
+    To generate an API key, go to **Settings > API Keys** and click **New API Key**. Copy the key immediately — Blinks only shows it once. Store it in a secrets manager or environment variable; never commit it to source code.
+  </Note>
+
+  ```bash
+  curl -X GET https://api.blinks.it/v1/inventory \
+    -H "Authorization: Bearer YOUR_API_KEY"
+  ```
+
+  Blinks returns a paginated list of inventory records across all your warehouses. A successful response looks like this:
+
+  ```json
+  {
+    "data": [
+      {
+        "id": "inv_01j9kx2m4p000000example01",
+        "sku": "TSHIRT-LG-BLU",
+        "warehouse_id": "wh_01j9kx1a0p000000example01",
+        "warehouse_name": "Main Warehouse",
+        "available": 0,
+        "reserved": 0,
+        "on_order": 0,
+        "reorder_point": 10,
+        "reorder_quantity": 50,
+        "updated_at": "2024-11-14T09:32:00Z"
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "per_page": 50,
+      "total": 1
+    }
+  }
+  ```
+
+  A `200 OK` response with your SKU in the list confirms that your account, warehouse, and product are all correctly configured.
+
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+## What to Do Next
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
-</Tip>
+Now that your account is live and your first SKU is tracked, here are the logical next steps:
+
+<CardGroup cols={2}>
+  <Card title="Account Setup" icon="gear" href="/getting-started/account-setup">
+    Invite your team, assign roles, and configure organization-wide settings like currency and timezone.
+  </Card>
+  <Card title="Inventory Overview" icon="boxes-stacked" href="/concepts/inventory-overview">
+    Understand how available, reserved, and on-order quantities are calculated and how orders affect stock.
+  </Card>
+  <Card title="Warehouses & Locations" icon="warehouse" href="/concepts/warehouses-and-locations">
+    Model your facilities with zones and bin locations for precise, shelf-level inventory tracking.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference">
+    Explore every endpoint available in the Blinks REST API to build your first integration.
+  </Card>
+</CardGroup>

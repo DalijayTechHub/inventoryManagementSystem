@@ -1,0 +1,96 @@
+---
+title: "API Error Codes and Troubleshooting for Blinks Inventory"
+sidebarTitle: "Errors"
+description: "Understand Blinks Inventory API error response format, HTTP status codes, and how to resolve common API errors."
+---
+
+When a request cannot be completed successfully, the Blinks Inventory API returns a structured JSON error response alongside an appropriate HTTP status code. Every error body follows the same shape, making it straightforward to handle errors consistently across all endpoints in your integration.
+
+## Error Response Format
+
+All error responses include an `error` object with three fields: a machine-readable `code`, a human-readable `message`, and a `request_id` that uniquely identifies the failed request.
+
+```json
+{
+  "error": {
+    "code": "not_found",
+    "message": "Product with ID prod_999 not found.",
+    "request_id": "req_abc123"
+  }
+}
+```
+
+<ResponseField name="error.code" type="string">
+  A short, snake_case string identifying the error type. Use this field in your code to branch error-handling logic — for example, distinguishing `not_found` from `validation_error`.
+</ResponseField>
+
+<ResponseField name="error.message" type="string">
+  A plain-English description of what went wrong. Intended to help developers debug; do not display this string directly to end users.
+</ResponseField>
+
+<ResponseField name="error.request_id" type="string">
+  A unique identifier for this specific API request. Include this value in any support ticket or bug report so the Blinks Inventory team can locate the request in server logs quickly.
+</ResponseField>
+
+<Note>
+  Always log the `request_id` from error responses in your application. When you contact Blinks Inventory support about an issue, providing the `request_id` is the fastest way to get a precise diagnosis — it allows the support team to trace the exact request, payload, and server-side context without requiring you to reproduce the problem.
+</Note>
+
+## HTTP Status Codes
+
+The API uses standard HTTP status codes. The table below maps each code to its meaning and the recommended resolution.
+
+| Status | Name                    | When It Occurs                                                                                      | How to Resolve                                                                                                  |
+| ------ | ----------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `200`  | OK                      | The request succeeded and the response body contains the requested data.                            | No action needed.                                                                                               |
+| `201`  | Created                 | A new resource was successfully created (e.g., a new product or order).                             | No action needed. The response body contains the created resource.                                              |
+| `400`  | Bad Request             | The request is malformed, missing a required field, or contains an invalid value type.              | Check the `message` field for which parameter failed validation. Fix the request body or query parameters and retry. |
+| `401`  | Unauthorized            | The `Authorization` header is absent, malformed, or contains an invalid or revoked API key.         | Verify your API key is correct and that the header is formatted as `Bearer YOUR_API_KEY`.                       |
+| `403`  | Forbidden               | The API key is valid, but its scope does not permit this operation.                                 | Check the key's scope in your dashboard. Upgrade to a `write` or `admin` key if the operation requires it.      |
+| `404`  | Not Found               | The requested resource does not exist at the given ID or path.                                      | Confirm the resource ID is correct and that the resource hasn't been deleted.                                   |
+| `409`  | Conflict                | The request conflicts with the current state of a resource — for example, a duplicate SKU.          | Inspect the `message` for the conflicting value, resolve the conflict (e.g., use a unique SKU), and retry.      |
+| `422`  | Unprocessable Entity    | The request is well-formed but violates a business logic rule, such as setting stock to a negative value. | Review the `message` for the specific constraint that was violated and adjust your request accordingly.         |
+| `429`  | Too Many Requests       | You have exceeded the rate limit of 1,000 requests per minute for your API key.                     | Wait before retrying. Use the `X-RateLimit-Reset` header to determine when your limit resets. Implement exponential backoff. |
+| `500`  | Internal Server Error   | An unexpected error occurred on Blinks Inventory's servers.                                         | Retry with exponential backoff. If the error persists, contact support with the `request_id` from the response. |
+
+## Retry Guidance
+
+Not all errors are permanent. For transient errors, build retry logic into your integration using **exponential backoff** to avoid overwhelming the API.
+
+### 429 Too Many Requests
+
+When you receive a `429`, stop sending requests immediately and wait until your rate limit window resets. The response includes the following headers to help you manage this:
+
+- `X-RateLimit-Limit` — your total allowed requests per minute.
+- `X-RateLimit-Remaining` — requests remaining in the current window.
+- `X-RateLimit-Reset` — Unix timestamp (UTC) when the current window resets.
+
+Use the `X-RateLimit-Reset` timestamp to calculate exactly how long to wait before retrying rather than guessing.
+
+### 500 Internal Server Error
+
+Server errors are rare and usually transient. Apply exponential backoff with jitter when retrying:
+
+1. Wait **1 second**, then retry.
+2. If it fails again, wait **2 seconds**.
+3. Continue doubling the wait time — 4s, 8s, 16s — up to a maximum of **60 seconds**.
+4. After **5 consecutive failures**, stop retrying and alert your team. Include the `request_id` from the last response when opening a support ticket.
+
+<Warning>
+  Do not retry `400`, `401`, `403`, `404`, or `422` errors automatically. These indicate a problem with your request or credentials, not a transient server issue. Retrying them in a loop will not resolve the underlying problem and wastes your rate limit quota.
+</Warning>
+
+## Common Error Codes
+
+Below are the most frequently encountered `error.code` values and their typical causes:
+
+| Code                  | Typical Cause                                                             |
+| --------------------- | ------------------------------------------------------------------------- |
+| `unauthorized`        | Missing or invalid API key.                                               |
+| `forbidden`           | API key scope is insufficient for this operation.                         |
+| `not_found`           | Resource ID does not exist or was deleted.                                |
+| `validation_error`    | A required field is missing or a field value failed type/format checks.   |
+| `duplicate_sku`       | A product with the same SKU already exists in your account.               |
+| `negative_stock`      | An inventory adjustment would result in a stock level below zero.         |
+| `rate_limit_exceeded` | More than 1,000 requests per minute were made with this API key.          |
+| `internal_error`      | Unexpected server-side failure. Contact support with the `request_id`.    |

@@ -1,0 +1,103 @@
+---
+title: "Blinks Inventory REST API Reference and Overview"
+sidebarTitle: "Introduction"
+description: "The Blinks Inventory REST API lets you manage products, stock, orders, and warehouses programmatically from any language or platform."
+---
+
+The Blinks Inventory REST API gives you full programmatic control over your inventory operations. Whether you're building a custom storefront, syncing stock across multiple sales channels, automating purchase orders, or integrating with a third-party logistics provider, the API exposes every core resource your business depends on — products, inventory levels, orders, warehouses, and suppliers — through a consistent, predictable HTTP interface.
+
+## What You Can Do
+
+Use the API to automate and integrate every part of your inventory workflow:
+
+- **Products** — Create, update, and archive product records including variants, SKUs, barcodes, and pricing.
+- **Inventory** — Query real-time stock levels across warehouses, make adjustments, and transfer stock between locations.
+- **Orders** — Create and manage inbound purchase orders and outbound fulfillment orders.
+- **Warehouses** — Configure warehouse locations, zones, and bin assignments.
+- **Suppliers** — Manage supplier profiles, lead times, and preferred pricing.
+
+<CardGroup cols={2}>
+  <Card title="Products" icon="box" href="/api-reference/products">
+    Create, update, and search your product catalog including variants and SKUs.
+  </Card>
+  <Card title="Inventory" icon="warehouse" href="/api-reference/inventory">
+    Query and adjust real-time stock levels across all your warehouse locations.
+  </Card>
+  <Card title="Orders" icon="cart-shopping" href="/api-reference/orders">
+    Manage purchase orders and fulfillment orders end-to-end.
+  </Card>
+  <Card title="Warehouses" icon="building" href="/api-reference/warehouses">
+    Configure warehouses, zones, and bin locations for precise stock tracking.
+  </Card>
+  <Card title="Suppliers" icon="truck" href="/api-reference/suppliers">
+    Store supplier details, lead times, and negotiate pricing records.
+  </Card>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Generate API keys and authenticate every request securely.
+  </Card>
+</CardGroup>
+
+## Base URL
+
+All API requests are made to the following base URL. The version (`v1`) is embedded in the path, so upgrading to a future version only requires changing that segment.
+
+```
+https://api.blinks.it/v1
+```
+
+## Responses
+
+Every response from the API — success or error — is returned as **JSON**. Make sure your HTTP client sets or accepts `Content-Type: application/json`. You do not need to pass an `Accept` header, but doing so is good practice.
+
+## Authentication
+
+The API uses **API keys** passed as a Bearer token in the `Authorization` header of every request. You generate keys from your Blinks Inventory dashboard and can scope them to limit what each key can access.
+
+See the [Authentication guide](/api-reference/authentication) for full details on generating keys, applying scopes, and keeping credentials secure.
+
+## Versioning
+
+The current API version is **v1**, reflected directly in the base URL path. Blinks Inventory maintains backward compatibility within a major version. When a breaking change is necessary, a new version (e.g., `v2`) is released and the previous version is supported for a deprecation window with advance notice via email and the changelog.
+
+## Rate Limits
+
+Each API key is allowed **1,000 requests per minute**. If you exceed this limit, the API returns a `429 Too Many Requests` response. Implement exponential backoff and retry logic in your integration to handle bursts gracefully. See the [Errors reference](/api-reference/errors) for retry guidance.
+
+<Info>
+  Rate limit headers are included in every response: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset`. Use these to monitor your usage and throttle proactively.
+</Info>
+
+## Pagination
+
+All list endpoints return a paginated response. Results are wrapped in a `data` array alongside a `meta` object that describes the current page position. Use the `page` and `per_page` query parameters to navigate through large result sets.
+
+| Parameter  | Type    | Default | Maximum | Description                          |
+| ---------- | ------- | ------- | ------- | ------------------------------------ |
+| `page`     | integer | `1`     | —       | The page number to retrieve.         |
+| `per_page` | integer | `25`    | `100`   | The number of records per page.      |
+
+### Example Paginated Request
+
+```bash
+curl "https://api.blinks.it/v1/products?page=2&per_page=50" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Example Paginated Response
+
+```json
+{
+  "data": [...],
+  "meta": {
+    "page": 2,
+    "per_page": 50,
+    "total": 234
+  }
+}
+```
+
+The `meta.total` field tells you the total number of records matching your query, so you can calculate the total number of pages as `ceil(total / per_page)`.
+
+<Tip>
+  To retrieve all records programmatically, loop through pages until the length of the `data` array is less than `per_page`, which signals you've reached the last page.
+</Tip>

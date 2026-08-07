@@ -1,0 +1,122 @@
+---
+title: "Sync Inventory with Shopify, WooCommerce, and More"
+sidebarTitle: "E-Commerce"
+description: "Connect Blinks Inventory with Shopify, WooCommerce, or other e-commerce platforms to automatically sync stock and fulfill orders."
+---
+
+Selling across multiple online storefronts is one of the fastest ways to grow revenue — and one of the fastest ways to create inventory chaos if your systems aren't talking to each other. The Blinks e-commerce integration keeps your product catalog, stock levels, and incoming orders in sync automatically, so you can focus on growth rather than reconciliation.
+
+## Supported platforms
+
+Blinks currently supports the following e-commerce platforms:
+
+- **Shopify** — Full real-time sync for products, variants, inventory levels, and orders.
+- **WooCommerce** — REST API-based sync for stock quantities and order ingestion.
+- **Magento (Adobe Commerce)** — Product and inventory sync via the Magento REST API.
+
+<Note>
+  Additional platform integrations are on the roadmap. If your platform isn't
+  listed, you can build a custom sync using the Blinks REST API — see the
+  [API Reference](/api-reference/introduction) for details.
+</Note>
+
+## What syncs automatically
+
+Once connected, the following data flows between your storefront and Blinks without any manual intervention:
+
+| Data | Direction | Frequency |
+|---|---|---|
+| Product catalog (name, SKU, description) | Storefront → Blinks (initial import) | On connect & manual refresh |
+| Stock levels (on-hand quantities) | Blinks → Storefront | Real-time |
+| Incoming customer orders | Storefront → Blinks | Real-time |
+| Order status updates | Blinks → Storefront | On status change |
+
+Stock levels flow **from Blinks outward** to your storefront, making Blinks the single source of truth. If you adjust stock manually in Blinks — after a receiving shipment or a stock count — those corrected quantities push to your storefront within seconds.
+
+## Connecting Shopify
+
+The steps below walk you through authorizing Blinks to access your Shopify store and enabling real-time stock sync. The process for WooCommerce and Magento follows the same general pattern, with platform-specific credential steps noted in each connector.
+
+<Note>
+  Every product that should sync must have a matching SKU in both Blinks and
+  Shopify. SKUs are the key used to map products across systems — products
+  without a SKU on either side will not sync and will appear in the SKU mismatch
+  report.
+</Note>
+
+<Steps>
+  <Step title="Open the Shopify connector">
+    In Blinks, navigate to **Settings > Integrations > Shopify**. Click the
+    **Connect** button on the Shopify tile.
+  </Step>
+  <Step title="Authorize via OAuth">
+    Blinks redirects you to Shopify's authorization page. Sign in to the
+    Shopify account that owns the store you want to connect, review the
+    requested permissions, and click **Install app**. Shopify redirects you back
+    to Blinks with the connection established. You do not need to copy or paste
+    any API credentials — the OAuth handshake handles everything.
+  </Step>
+  <Step title="Map product SKUs">
+    Blinks scans your Shopify catalog and compares SKUs with products already in
+    Blinks. The **SKU Mapping** screen shows three lists:
+
+    - **Matched** — SKUs found in both systems. These will sync immediately.
+    - **Blinks only** — Products in Blinks with no matching Shopify SKU. Stock
+      changes for these will not push to Shopify until a match is created.
+    - **Shopify only** — Products in Shopify with no matching Blinks SKU. You
+      can import them into Blinks directly from this screen.
+
+    Resolve any mismatches before proceeding, or continue and fix them later
+    from **Settings > Integrations > Shopify > SKU Mapping**.
+  </Step>
+  <Step title="Enable real-time stock sync">
+    Toggle **Real-time stock sync** to **On**. Blinks immediately pushes current
+    on-hand quantities for all matched products to Shopify and begins listening
+    for new orders via Shopify webhooks.
+  </Step>
+</Steps>
+
+## How stock sync works
+
+When a customer places an order on Shopify, the following sequence happens automatically:
+
+1. Shopify fires a webhook to Blinks within seconds of the order being created.
+2. Blinks creates a **Sales Order** linked to that Shopify order ID.
+3. Blinks **reserves** the ordered quantities against the designated warehouse, reducing available stock immediately.
+4. The updated available quantity is pushed back to Shopify so the storefront reflects the new stock level.
+5. When you mark the Sales Order as **Fulfilled** in Blinks, the on-hand quantity is formally decremented and the Shopify order is marked fulfilled.
+
+<Tip>
+  If you fulfil orders from multiple warehouses, assign a default warehouse to
+  the Shopify integration under **Settings > Integrations > Shopify > Fulfilment
+  Warehouse**. You can override this on individual sales orders if needed.
+</Tip>
+
+## Handling SKU mismatches
+
+SKU mismatches are the most common cause of stock not syncing for specific products. To review and resolve them:
+
+1. Go to **Settings > Integrations > Shopify > SKU Mapping**.
+2. The **Unmatched** tab lists every product that could not be paired.
+3. For each unmatched product, either:
+   - **Edit the SKU** in Blinks or Shopify so they match, then click **Refresh mapping**.
+   - **Manually link** the two records by selecting the Blinks product and the Shopify product from the dropdowns and clicking **Save link**.
+
+Once a link is saved, Blinks immediately syncs stock for that product.
+
+## Disconnecting an integration
+
+To disconnect Shopify from Blinks:
+
+1. Go to **Settings > Integrations > Shopify**.
+2. Click the **⋯** menu on the Shopify tile and select **Disconnect**.
+3. Confirm the disconnection in the dialog.
+
+<Warning>
+  Disconnecting stops all webhooks and stock pushes immediately. Stock levels
+  in Shopify will no longer update when orders come in or when you adjust
+  quantities in Blinks. Reconnecting requires going through the full OAuth and
+  SKU mapping flow again.
+</Warning>
+
+Disconnecting from Blinks does **not** uninstall the Blinks app from your Shopify admin. To fully remove it, go to your Shopify admin under **Apps** and uninstall the Blinks Inventory app from there.

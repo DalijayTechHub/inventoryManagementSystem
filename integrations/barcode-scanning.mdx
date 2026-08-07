@@ -1,0 +1,127 @@
+---
+title: "Use Barcode and QR Code Scanning with Blinks Inventory"
+sidebarTitle: "Barcode Scanning"
+description: "Speed up receiving, picking, and stock counts by scanning barcodes and QR codes with a USB scanner or mobile device."
+---
+
+Manual data entry during receiving, picking, and stock counts is slow and introduces transcription errors that quietly corrupt your inventory records. Barcode and QR code scanning lets your team move faster and more accurately by replacing typed inputs with a single scan — the right product, the right quantity, logged instantly. Blinks supports every common scanning input method, from the USB scanner sitting on your warehouse desk to the phone already in your team member's pocket.
+
+## Supported input methods
+
+- **USB barcode scanners** — Any HID-compliant USB scanner works with Blinks in a web browser. No drivers or configuration required.
+- **Bluetooth barcode scanners** — Pair your Bluetooth scanner with a computer or tablet running the Blinks web app and it behaves identically to a USB scanner.
+- **Mobile camera (iOS & Android)** — The Blinks mobile app uses your device's camera as a barcode scanner. Available on iPhone (iOS 15+) and Android (8.0+).
+
+## Setting up your scanner
+
+<Tabs>
+  <Tab title="USB / Bluetooth Scanner">
+    USB and Bluetooth scanners operate in **keyboard emulation mode** — they
+    send scanned data to the active input field exactly as if you had typed the
+    barcode string and pressed **Enter**. This means setup is genuinely
+    plug-and-play:
+
+    1. Plug your USB scanner into any available USB port on the computer running
+       Blinks, or pair your Bluetooth scanner using your operating system's
+       standard Bluetooth settings.
+    2. Open Blinks in your browser and navigate to any workflow that supports
+       scanning (Receive Stock, Pick & Pack, or Stock Count).
+    3. Click into the **Scan barcode** field — it turns blue to show it is
+       active.
+    4. Scan any product barcode. Blinks reads the input, looks up the matching
+       product by barcode or SKU, and populates the product line automatically.
+
+    <Note>
+      If your scanner adds a prefix or suffix character to scanned values, you
+      may need to reprogram it using the configuration barcodes in your scanner's
+      manual. Most scanners ship with no prefix/suffix by default.
+    </Note>
+
+    **Recommended scanner specs:**
+    - Interface: USB HID or Bluetooth HID
+    - Supported symbologies: EAN-13, UPC-A, Code 128, QR Code (see full list below)
+    - Scan rate: Any — Blinks debounces rapid successive scans automatically
+  </Tab>
+  <Tab title="Mobile App (iOS & Android)">
+    The Blinks mobile app turns your device's rear camera into a barcode
+    scanner without any additional hardware.
+
+    **Install the app:**
+
+    - **iOS** — Search for "Blinks Inventory" on the App Store, or scan the QR
+      code shown in **Settings > Mobile App**.
+    - **Android** — Search for "Blinks Inventory" on Google Play, or scan the
+      QR code shown in **Settings > Mobile App**.
+
+    **Connect to your account:**
+
+    1. Open the Blinks mobile app.
+    2. Tap **Sign in** and enter your Blinks email and password, or tap **Scan
+       login QR code** and scan the QR code displayed in **Settings > Mobile App
+       > Pair Device** in the web app.
+    3. Select your workspace if you belong to more than one.
+
+    **Start scanning:**
+
+    1. Tap the **Scan** button (camera icon) in any supported workflow — Receive,
+       Pick, or Count.
+    2. Point the camera at a barcode or QR code and hold steady. The app
+       detects and confirms the product within one to two seconds.
+    3. Enter the quantity if prompted, then tap **Confirm**.
+
+    <Tip>
+      Good lighting makes a significant difference for camera-based scanning.
+      If the app is struggling to read a barcode, tap the flashlight icon to
+      enable the torch.
+    </Tip>
+  </Tab>
+</Tabs>
+
+## Workflows that support scanning
+
+### Receiving stock
+
+When a purchase order shipment arrives, open the PO in Blinks and click **Receive Stock**. Tap or click into the **Scan barcode** field and scan each item as you unpack it. Blinks matches the barcode to a PO line, increments the received quantity by one (or prompts for a quantity for bulk items), and moves to the next line. When all items are scanned, click **Confirm Receipt** to post the stock to your warehouse.
+
+<Tip>
+  If an incoming item has a barcode not yet in Blinks, you are prompted to
+  assign it to an existing product or create a new product on the spot. This
+  keeps your barcode registry up to date without a separate data-entry step.
+</Tip>
+
+### Pick and pack
+
+Open a Sales Order and click **Pick & Pack**. Scan each item as you retrieve it from the shelf. Blinks highlights the corresponding order line in green when the correct item is scanned and shows a warning if the wrong barcode is scanned, preventing mis-picks before a parcel is sealed.
+
+### Stock count / cycle count
+
+Open a **Stock Count** session from **Inventory > Stock Counts > New Count**. Select the location or product range to count, then scan items one by one. Blinks records each scan as a counted unit. When you finish, Blinks compares your scanned quantities against the expected on-hand values and shows a variance report before you commit the count — giving you a chance to recheck discrepancies before adjustments are posted.
+
+## Printing barcode and QR code labels
+
+Blinks can generate and print labels for any product directly from the product record.
+
+1. Go to **Products** and select one or more products using the checkboxes.
+2. Click **Actions > Print Labels**.
+3. Choose a label format (Avery, Zebra ZPL, or custom PDF) and the barcode symbology (barcode or QR code).
+4. Select the number of copies per product and click **Generate**.
+5. Download the PDF or send directly to a connected label printer.
+
+<Note>
+  ZPL output is designed for Zebra thermal printers (ZD-series and ZT-series).
+  For other thermal printers, use the PDF option and adjust scale to match your
+  label stock size.
+</Note>
+
+## Supported barcode formats
+
+Blinks recognises the following barcode symbologies on both the web app and the mobile app:
+
+| Format | Common use |
+|---|---|
+| **EAN-13** | Retail consumer products (standard 13-digit barcode) |
+| **UPC-A** | North American retail products (12-digit barcode) |
+| **Code 128** | Warehouse, logistics, and B2B shipping labels |
+| **QR Code** | Blinks-generated labels; high-density product data |
+
+If your products use a different symbology (e.g., Code 39 or Data Matrix), USB and Bluetooth scanners typically decode these natively and pass the decoded string to Blinks. Mobile camera scanning is limited to the four formats listed above.

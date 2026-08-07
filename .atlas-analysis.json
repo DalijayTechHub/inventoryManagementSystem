@@ -1,13 +1,11 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
+  "projectType": "saas",
+  "projectName": "Blinks Inventory",
+  "projectDescription": "A cloud-based inventory management system for tracking stock, managing products, and streamlining warehouse and supply chain operations.",
   "theme": "almond",
-  "name": "Blinks Inventory",
-  "colors": {
-    "primary": "#ef7025",
-    "light": "#eec9bc",
-    "dark": "#4fa1ab"
-  },
-  "favicon": "/favicon.svg",
+  "primaryColor": "#ef7025",
+  "lightColor": "#eec9bc",
+  "darkColor": "#4fa1ab",
   "navigation": {
     "tabs": [
       {
@@ -84,20 +82,30 @@
       }
     ]
   },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:support@blinks.it"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Sign In",
-      "href": "https://app.blinks.it"
-    }
-  },
-  "footer": {
-    "socials": {}
-  }
+  "keyFeatures": [
+    "Real-time stock level tracking across multiple warehouses",
+    "Product and variant management with SKU support",
+    "Purchase and sales order management",
+    "Stock movement history and audit trail",
+    "Low-stock alerts and reorder point automation",
+    "Reports and analytics dashboards",
+    "Barcode and QR code scanning support",
+    "Integrations with e-commerce and accounting platforms",
+    "REST API for custom integrations"
+  ],
+  "publicApiSurface": [
+    "GET /products — list all products",
+    "POST /products — create a product",
+    "GET /products/{id} — get product details",
+    "PUT /products/{id} — update a product",
+    "DELETE /products/{id} — delete a product",
+    "GET /inventory — list inventory levels",
+    "POST /inventory/adjust — adjust stock quantity",
+    "GET /warehouses — list warehouses",
+    "POST /warehouses — create a warehouse",
+    "GET /orders — list orders",
+    "POST /orders — create an order",
+    "GET /suppliers — list suppliers",
+    "POST /suppliers — create a supplier"
+  ]
 }

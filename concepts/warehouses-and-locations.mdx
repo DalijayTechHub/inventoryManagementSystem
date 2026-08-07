@@ -1,0 +1,89 @@
+---
+title: "Warehouses and Storage Locations Explained"
+sidebarTitle: "Warehouses & Locations"
+description: "See how Blinks Inventory models warehouses, zones, and bin locations so you can track exactly where every item is stored."
+---
+
+Knowing that you have 500 units of a product is useful. Knowing they are split across three warehouses — 300 in your main DC, 150 in a regional hub, and 50 in transit — is far more useful. Blinks Inventory models your physical and logical storage infrastructure as a three-level hierarchy: **warehouses**, **zones**, and **bin locations**. This structure lets you track stock at whatever level of granularity your operations require, from a simple single-site setup to a complex multi-facility network with aisle-level precision.
+
+## Warehouses
+
+A warehouse is the top-level storage entity in Blinks. It represents a distinct physical facility — a distribution center, a retail stockroom, a fulfilment partner's site, or any other location where you hold inventory.
+
+Each warehouse has:
+
+- **Name** — a label used throughout the dashboard and on order documents (for example, `London Distribution Centre`).
+- **Address** — the physical address of the facility, used on purchase orders and shipment documents.
+- **Default warehouse** — one warehouse can be designated as the default. New SKUs are automatically assigned here when a location is not explicitly specified, and order flows default to this warehouse when none is selected.
+
+Stock levels, movements, and reorder settings are all tracked independently per warehouse. A SKU can have different available quantities, different reorder points, and a completely separate movement history at each warehouse.
+
+<Note>
+  Every organization must have at least one warehouse before you can receive stock or process orders. Create your first warehouse during onboarding or from **Warehouses > New Warehouse** at any time.
+</Note>
+
+## Zones
+
+A zone is a named section within a warehouse. Zones let you divide a large facility into logical areas that reflect how your team actually organizes space — without requiring you to define every individual shelf position upfront.
+
+Common zone examples:
+
+- `Aisle A`, `Aisle B`, `Aisle C` — for a conventionally organized warehouse
+- `Cold Storage`, `Ambient`, `Frozen` — for a food and beverage operation
+- `Returns`, `Quarantine`, `Staging` — for process-specific areas
+- `Rack 1`, `Rack 2` — for a small stockroom
+
+Zones are optional. If your operation is small enough that warehouse-level tracking is sufficient, you can skip zones entirely and track stock at the warehouse level only.
+
+## Bin Locations
+
+A bin (also called a location or slot) is the most granular level in the location hierarchy. It represents a specific physical storage position within a zone — a shelf, a rack position, a floor slot, or a pallet space.
+
+Bin locations are typically referenced using a code that encodes their position, for example:
+
+- `A-01-03` — Aisle A, Rack 01, Shelf 03
+- `CS-B-07` — Cold Storage, Bay B, Position 07
+- `STAG-04` — Staging area, Position 04
+
+When you enable bin-level tracking for a warehouse, Blinks tracks each SKU's quantity at the bin level rather than just the warehouse level. This enables directed putaway, directed picking, and precise cycle counts scoped to individual bins.
+
+<Info>
+  Bin-level tracking is ideal for larger warehouses where multiple staff pick simultaneously and stock is spread across many positions. For small operations, warehouse-level or zone-level tracking is often sufficient and easier to maintain.
+</Info>
+
+## Multi-Warehouse Inventory
+
+When you operate more than one warehouse, Blinks tracks inventory at each location independently. From the product detail page, you can see a per-warehouse breakdown of available, reserved, and on-order quantities for every SKU. From the warehouse detail page, you can see the full inventory of all SKUs held at that facility.
+
+Key behaviours in a multi-warehouse setup:
+
+- **Orders are fulfilled from a specific warehouse.** When you create a sales order, you select which warehouse it ships from. That warehouse's available and reserved quantities are affected — other warehouses are not.
+- **Purchase orders are received at a specific warehouse.** When stock arrives, you specify the receiving warehouse, and that location's on-order and available quantities update accordingly.
+- **Reorder points are per SKU per warehouse.** You can set different reorder thresholds for the same SKU at different warehouses to reflect local demand patterns.
+- **Transfers move stock between warehouses.** To rebalance inventory, use a Transfer movement to decrease quantity at the source warehouse and increase it at the destination. See [Stock Movements](/concepts/stock-movements) for details.
+
+## Virtual Warehouses
+
+Not all inventory exists in a physical location at a given moment. Blinks supports **virtual warehouses** — special-purpose warehouses that represent logical states rather than physical places.
+
+Common uses for virtual warehouses include:
+
+- **In-Transit** — stock that has been shipped from your supplier but not yet received at your facility. Goods are transferred from the purchase order's "on order" state to the In-Transit virtual warehouse when they leave the supplier.
+- **Returns Processing** — returned items that have arrived back from customers but not yet been inspected, restocked, or written off.
+- **Damaged / Quarantine** — items that have been pulled from available stock pending a quality decision.
+
+Virtual warehouses behave exactly like physical ones — they hold stock, have their own movement history, and can be the source or destination of transfers. The distinction is purely organizational: they are created and labelled to represent a process state rather than a physical address.
+
+<Tip>
+  Create an In-Transit virtual warehouse if your supply chain involves long lead times or sea freight. Tracking inbound goods as warehouse stock (rather than just "on order") gives you a more realistic picture of what you actually have available or nearly available.
+</Tip>
+
+## Default Warehouse
+
+Every organization has one warehouse designated as the **default**. The default warehouse is used:
+
+- As the pre-selected location on new orders, receipts, and adjustments when you do not specify a warehouse.
+- As the primary location for stock-level alerts and dashboard summary widgets.
+- As the assumed location in API calls that do not include a `warehouse_id` parameter.
+
+You can change the default warehouse at any time from **Warehouses**, by opening the warehouse detail and toggling **Set as default**. Only one warehouse can be the default at a time.

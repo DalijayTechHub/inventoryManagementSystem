@@ -1,0 +1,392 @@
+---
+title: "Products API — Manage Your Product Catalog via REST"
+sidebarTitle: "Products"
+description: "REST API endpoints for creating, listing, updating, and deleting products and variants in Blinks Inventory."
+---
+
+The Products API gives you full control over your product catalog. Use it to create new SKUs, update pricing and reorder thresholds, retrieve detailed product records including variant breakdowns, and remove products that are no longer needed. All requests must include your API key in the `Authorization` header, and all responses are returned as JSON.
+
+---
+
+## List all products
+
+Retrieve a paginated list of products in your catalog. Use the query parameters to filter by category, search by name or SKU, and control sort order.
+
+```bash
+curl -X GET "https://api.blinks.it/v1/products?page=1&per_page=25&sort=name" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Query parameters
+
+<ParamField query="page" type="integer" default="1">
+  The page number to return.
+</ParamField>
+
+<ParamField query="per_page" type="integer" default="20">
+  The number of products to return per page. Maximum is 100.
+</ParamField>
+
+<ParamField query="category" type="string">
+  Filter products by category name. Returns only products assigned to the specified category.
+</ParamField>
+
+<ParamField query="search" type="string">
+  Full-text search across product names and SKUs.
+</ParamField>
+
+<ParamField query="sort" type="string" default="created_at">
+  Sort order for results. Accepted values: `name`, `created_at`.
+</ParamField>
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "prod_01H8X2K9M3N4P5Q6R7S8T9U0V1",
+      "name": "Wireless Keyboard Pro",
+      "sku": "WKB-PRO-001",
+      "barcode": "012345678901",
+      "category": "Electronics",
+      "cost_price": 22.50,
+      "selling_price": 49.99,
+      "reorder_point": 50,
+      "created_at": "2024-03-15T10:30:00Z"
+    },
+    {
+      "id": "prod_02J9Y3L0N4O5P6Q7R8S9T0U1V2",
+      "name": "USB-C Hub 7-Port",
+      "sku": "USB-HUB-7P",
+      "barcode": "098765432109",
+      "category": "Electronics",
+      "cost_price": 15.00,
+      "selling_price": 34.99,
+      "reorder_point": 30,
+      "created_at": "2024-03-16T08:00:00Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "per_page": 25,
+    "total": 142
+  }
+}
+```
+
+<ResponseField name="data" type="array">
+  Array of product objects.
+
+  <Expandable title="Product object fields">
+    <ResponseField name="id" type="string">
+      Unique identifier for the product.
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Display name of the product.
+    </ResponseField>
+    <ResponseField name="sku" type="string">
+      Stock Keeping Unit — your internal product code.
+    </ResponseField>
+    <ResponseField name="barcode" type="string">
+      Barcode value (UPC, EAN, or custom).
+    </ResponseField>
+    <ResponseField name="category" type="string">
+      Category name the product belongs to.
+    </ResponseField>
+    <ResponseField name="cost_price" type="number">
+      Your purchase cost for the product, in the account's base currency.
+    </ResponseField>
+    <ResponseField name="selling_price" type="number">
+      The price at which you sell the product.
+    </ResponseField>
+    <ResponseField name="reorder_point" type="integer">
+      Stock level at which a reorder alert is triggered.
+    </ResponseField>
+    <ResponseField name="created_at" type="string">
+      ISO 8601 timestamp of when the product was created.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="meta" type="object">
+  Pagination metadata.
+
+  <Expandable title="Meta fields">
+    <ResponseField name="page" type="integer">
+      The current page number.
+    </ResponseField>
+    <ResponseField name="per_page" type="integer">
+      Number of results per page.
+    </ResponseField>
+    <ResponseField name="total" type="integer">
+      Total number of matching products across all pages.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## Create a product
+
+Add a new product to your catalog. The `name` and `sku` fields are required; all other fields are optional and can be updated later.
+
+```bash
+curl -X POST "https://api.blinks.it/v1/products" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Mechanical Gaming Mouse",
+    "sku": "MGM-RGB-001",
+    "barcode": "112233445566",
+    "category": "Electronics",
+    "cost_price": 18.00,
+    "selling_price": 44.99,
+    "reorder_point": 40,
+    "description": "High-DPI mechanical gaming mouse with RGB lighting."
+  }'
+```
+
+### Request body
+
+<ParamField body="name" type="string" required>
+  The product's display name. Must be unique within your account.
+</ParamField>
+
+<ParamField body="sku" type="string" required>
+  Your internal Stock Keeping Unit code. Must be unique within your account.
+</ParamField>
+
+<ParamField body="barcode" type="string">
+  Barcode value for the product (UPC, EAN, or custom format).
+</ParamField>
+
+<ParamField body="category" type="string">
+  Category name to assign the product to.
+</ParamField>
+
+<ParamField body="cost_price" type="number">
+  Your purchase cost for the product.
+</ParamField>
+
+<ParamField body="selling_price" type="number">
+  The price at which you sell the product.
+</ParamField>
+
+<ParamField body="reorder_point" type="integer">
+  The stock threshold that triggers a low-stock alert.
+</ParamField>
+
+<ParamField body="description" type="string">
+  A free-text description of the product.
+</ParamField>
+
+### Response
+
+Returns the newly created product object with its assigned `id`.
+
+```json
+{
+  "data": {
+    "id": "prod_03K0Z4M1O5P6Q7R8S9T0U1V2W3",
+    "name": "Mechanical Gaming Mouse",
+    "sku": "MGM-RGB-001",
+    "barcode": "112233445566",
+    "category": "Electronics",
+    "cost_price": 18.00,
+    "selling_price": 44.99,
+    "reorder_point": 40,
+    "description": "High-DPI mechanical gaming mouse with RGB lighting.",
+    "created_at": "2024-04-01T14:22:00Z"
+  }
+}
+```
+
+---
+
+## Get a product
+
+Retrieve the full details of a single product by its ID, including its variants array.
+
+```bash
+curl -X GET "https://api.blinks.it/v1/products/prod_03K0Z4M1O5P6Q7R8S9T0U1V2W3" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The unique ID of the product to retrieve.
+</ParamField>
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "prod_03K0Z4M1O5P6Q7R8S9T0U1V2W3",
+    "name": "Mechanical Gaming Mouse",
+    "sku": "MGM-RGB-001",
+    "barcode": "112233445566",
+    "category": "Electronics",
+    "cost_price": 18.00,
+    "selling_price": 44.99,
+    "reorder_point": 40,
+    "description": "High-DPI mechanical gaming mouse with RGB lighting.",
+    "created_at": "2024-04-01T14:22:00Z",
+    "variants": [
+      {
+        "id": "var_01A2B3C4D5E6F7G8H9I0J1K2",
+        "name": "Black",
+        "sku": "MGM-RGB-001-BLK",
+        "barcode": "112233445567",
+        "cost_price": 18.00,
+        "selling_price": 44.99
+      },
+      {
+        "id": "var_02L3M4N5O6P7Q8R9S0T1U2V3",
+        "name": "White",
+        "sku": "MGM-RGB-001-WHT",
+        "barcode": "112233445568",
+        "cost_price": 18.00,
+        "selling_price": 46.99
+      }
+    ]
+  }
+}
+```
+
+<ResponseField name="variants" type="array">
+  List of product variants (e.g. different colors or sizes).
+
+  <Expandable title="Variant object fields">
+    <ResponseField name="id" type="string">
+      Unique identifier for the variant.
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Label for this variant (e.g. "Black", "Large").
+    </ResponseField>
+    <ResponseField name="sku" type="string">
+      SKU specific to this variant.
+    </ResponseField>
+    <ResponseField name="barcode" type="string">
+      Barcode specific to this variant.
+    </ResponseField>
+    <ResponseField name="cost_price" type="number">
+      Cost price override for this variant.
+    </ResponseField>
+    <ResponseField name="selling_price" type="number">
+      Selling price override for this variant.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## Update a product
+
+Update any fields on an existing product. Send only the fields you want to change — omitted fields remain unchanged.
+
+```bash
+curl -X PUT "https://api.blinks.it/v1/products/prod_03K0Z4M1O5P6Q7R8S9T0U1V2W3" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "selling_price": 49.99,
+    "reorder_point": 60
+  }'
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The unique ID of the product to update.
+</ParamField>
+
+### Request body
+
+<ParamField body="name" type="string">
+  Updated display name for the product.
+</ParamField>
+
+<ParamField body="sku" type="string">
+  Updated SKU. Must remain unique within your account.
+</ParamField>
+
+<ParamField body="barcode" type="string">
+  Updated barcode value.
+</ParamField>
+
+<ParamField body="category" type="string">
+  Updated category assignment.
+</ParamField>
+
+<ParamField body="cost_price" type="number">
+  Updated purchase cost.
+</ParamField>
+
+<ParamField body="selling_price" type="number">
+  Updated selling price.
+</ParamField>
+
+<ParamField body="reorder_point" type="integer">
+  Updated low-stock alert threshold.
+</ParamField>
+
+<ParamField body="description" type="string">
+  Updated free-text description.
+</ParamField>
+
+### Response
+
+Returns the full updated product object.
+
+```json
+{
+  "data": {
+    "id": "prod_03K0Z4M1O5P6Q7R8S9T0U1V2W3",
+    "name": "Mechanical Gaming Mouse",
+    "sku": "MGM-RGB-001",
+    "barcode": "112233445566",
+    "category": "Electronics",
+    "cost_price": 18.00,
+    "selling_price": 49.99,
+    "reorder_point": 60,
+    "description": "High-DPI mechanical gaming mouse with RGB lighting.",
+    "created_at": "2024-04-01T14:22:00Z"
+  }
+}
+```
+
+---
+
+## Delete a product
+
+Permanently remove a product from your catalog. This action cannot be undone.
+
+<Note>
+  You cannot delete a product that currently has inventory on hand in any warehouse. First reduce the product's stock to zero via the [Inventory Adjustments API](/api-reference/inventory#adjust-stock-quantity), then retry the delete.
+</Note>
+
+```bash
+curl -X DELETE "https://api.blinks.it/v1/products/prod_03K0Z4M1O5P6Q7R8S9T0U1V2W3" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The unique ID of the product to delete.
+</ParamField>
+
+### Response
+
+Returns `204 No Content` on success with an empty body.
+
+```json
+
+```
+
+<Tip>
+  If you want to hide a product from active use without deleting it, consider updating its `category` to an archived category rather than deleting it outright.
+</Tip>

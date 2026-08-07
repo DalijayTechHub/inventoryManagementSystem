@@ -1,0 +1,124 @@
+---
+title: "Fulfill Sales Orders and Manage Outbound Inventory"
+sidebarTitle: "Sales Orders"
+description: "Create sales orders in Blinks Inventory, allocate stock to customers, and track fulfillment from picking to shipment."
+---
+
+A sales order (SO) is the record of a customer's request to purchase goods from you. In Blinks Inventory, sales orders drive the entire outbound fulfillment workflow: they reserve stock so it can't be double-allocated, generate pick lists for your warehouse team, and reduce on-hand quantities the moment an order ships. Keeping your sales orders accurate and up to date ensures your stock levels are always a true reflection of what's actually available.
+
+## Sales Order Statuses
+
+Sales orders move through a structured lifecycle from creation to delivery:
+
+| Status | Meaning |
+|---|---|
+| **Draft** | The SO has been created but not confirmed. No stock is reserved. |
+| **Confirmed** | The SO has been confirmed. Stock is reserved and a pick list can be generated. |
+| **Picking** | The pick list has been generated and your warehouse team is actively fulfilling the order. |
+| **Shipped** | All items have been picked and shipped. Inventory is reduced and the order is closed. |
+| **Cancelled** | The SO was voided. Any reserved stock is released back to available. |
+
+## Create a Sales Order
+
+<Steps>
+  ### Open the New SO form
+
+  Go to **Sales Orders** in the left sidebar and click **New Sales Order**.
+
+  ### Select the customer
+
+  Choose an existing customer from the **Customer** dropdown, or click **New Customer** to add one on the fly. The customer's default shipping address populates automatically.
+
+  ### Add line items
+
+  Click **Add Item** for each product the customer is ordering:
+
+  1. Search by product name or SKU in the **Product** field.
+  2. Enter the **Quantity** ordered.
+  3. Confirm or override the **Unit Price** — it defaults to the product's selling price.
+
+  Continue adding items until the order is complete. The order total updates in real time.
+
+  ### Select the fulfillment warehouse
+
+  Choose the warehouse from which the order will be picked and shipped in the **Warehouse** dropdown. If you operate multiple warehouses, select the one with available stock closest to the customer's location.
+
+  ### Enter shipping details
+
+  Confirm the **Ship To** address, select a **Shipping Method**, and optionally add a **Customer Reference** (e.g., the customer's own PO number).
+
+  ### Review and save
+
+  Check the order summary, then click **Save as Draft** to keep it editable, or proceed to confirm it in the next step.
+</Steps>
+
+<Warning>
+  Stock is **not reserved** until you confirm the sales order. While an SO sits in Draft status, the stock it references remains available and can be allocated to other orders. Always confirm an SO as soon as the sale is firm to prevent another order from claiming the same units.
+</Warning>
+
+## Confirm the Sales Order
+
+When you're ready to commit stock to the order, open the draft SO and click **Confirm Order**. Blinks Inventory:
+
+- Moves the reserved quantity from *available* to *reserved* for each line item at the selected warehouse.
+- Changes the SO status from *Draft* to *Confirmed*.
+- Makes the **Generate Pick List** button available.
+
+If any line item has insufficient available stock, Blinks Inventory warns you before confirming (see [Handling Backorders](#handling-backorders) below).
+
+## Generate and Complete a Pick List
+
+<Steps>
+  ### Generate the pick list
+
+  Open the confirmed SO and click **Generate Pick List**. Blinks Inventory creates a pick list document that shows each item, its quantity, and the warehouse bin or location where it's stored. The SO status changes to *Picking*.
+
+  ### Print or share the pick list
+
+  Click **Print Pick List** to produce a printer-friendly version for your warehouse team. Alternatively, share the digital pick list with your team via the mobile app or a direct link.
+
+  ### Complete the pick
+
+  As your warehouse team picks each item, they check it off the pick list — either on paper or directly in the Blinks Inventory mobile app by scanning barcodes. When all items are picked, click **Mark Pick as Complete** in the SO detail view.
+</Steps>
+
+## Ship the Order
+
+Once picking is complete, record the shipment to close out the order and reduce inventory.
+
+<Steps>
+  ### Click Ship Order
+
+  Open the SO and click **Ship Order** in the top-right corner.
+
+  ### Enter shipment details
+
+  Fill in:
+  - **Tracking Number** — provided by your carrier.
+  - **Carrier** — e.g., FedEx, UPS, DHL.
+  - **Ship Date** — defaults to today.
+
+  ### Confirm the shipment
+
+  Click **Confirm Shipment**. Blinks Inventory immediately:
+  - Deducts the shipped quantities from on-hand stock at the fulfillment warehouse.
+  - Clears the reserved quantity for these items.
+  - Sets the SO status to *Shipped*.
+  - Logs a `sales_shipment` stock movement for each line item.
+</Steps>
+
+<Note>
+  If you ship partial quantities — for example, only some items are ready — enter the quantities actually shipped. The remaining items stay in *Picking* status and you can create a follow-up shipment against the same SO.
+</Note>
+
+## Handling Backorders
+
+A backorder occurs when a customer orders more units than you currently have available. When you try to confirm an SO with insufficient stock, Blinks Inventory presents two options:
+
+**Confirm with backorder** — Blinks Inventory confirms the SO and reserves all available stock. The shortfall is flagged as backordered. When new stock arrives via a purchase order receipt, it is automatically allocated to the oldest backorder first.
+
+**Put on hold** — The SO remains in Draft status until you have enough stock to fulfill it in full. Use this approach if your customers expect complete orders and won't accept partial shipments.
+
+<Tip>
+  Filter the Sales Orders list by **Status: Confirmed** and check the **Backordered** column to see all orders waiting on stock. Cross-reference with open purchase orders to estimate when you'll be able to fulfill them.
+</Tip>

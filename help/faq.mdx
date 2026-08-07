@@ -1,0 +1,232 @@
+---
+title: "Frequently Asked Questions About Blinks Inventory"
+sidebarTitle: "FAQ"
+description: "Answers to the most common questions about setting up Blinks Inventory, managing stock, billing, and integrations."
+---
+
+Whether you are evaluating Blinks Inventory for the first time or you are an existing customer running into something unfamiliar, this page answers the questions our support team hears most often. Browse by category or use your browser's find function (Ctrl+F / ⌘+F) to jump straight to a topic.
+
+---
+
+## Getting Started
+
+<AccordionGroup>
+  <Accordion title="How do I create a Blinks Inventory account?">
+    Creating an account takes less than two minutes. Go to
+    [app.blinksinventory.com/signup](https://app.blinksinventory.com/signup),
+    enter your name, work email address, and a password, then click **Create
+    account**. Blinks sends a verification email to the address you provided —
+    click the link inside to activate your account and land in your new
+    workspace.
+
+    If you are joining a workspace that already exists, ask your workspace admin
+    to send you an invitation from **Settings > Team**. Accepting the invitation
+    adds you to the existing workspace rather than creating a new one.
+  </Accordion>
+
+  <Accordion title="Is there a free trial?">
+    Yes. Every new Blinks Inventory account starts on a **14-day free trial** of
+    the Pro plan, with no credit card required. During the trial you have access
+    to all Pro features, including unlimited integrations, multiple warehouses,
+    and API access.
+
+    At the end of the trial, your workspace automatically moves to the Free plan
+    unless you add a payment method and choose a paid plan. The Free plan
+    supports up to 100 SKUs and one user — your data is never deleted when a
+    trial ends.
+  </Accordion>
+
+  <Accordion title="How many users can I add to my account?">
+    The number of users depends on your plan:
+
+    | Plan | Users included | Additional users |
+    |---|---|---|
+    | Free | 1 | Not available |
+    | Starter | 3 | $9 / user / month |
+    | Pro | 10 | $9 / user / month |
+    | Enterprise | Unlimited | Included |
+
+    To invite a team member, go to **Settings > Team > Invite member**, enter
+    their email address, select a role (Admin, Editor, or Viewer), and click
+    **Send invite**. They receive an email with a link to join your workspace.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Products & Inventory
+
+<AccordionGroup>
+  <Accordion title="Can I import my existing product catalog?">
+    Yes. Blinks supports bulk product import via CSV. To import your catalog:
+
+    1. Go to **Products > Import**.
+    2. Download the **CSV template** to see the exact column headers and
+       formatting Blinks expects.
+    3. Fill in your product data — the only required column is **SKU**. Name,
+       description, cost, price, and barcode are optional but recommended.
+    4. Upload your completed CSV and click **Run import**.
+
+    Blinks validates each row before committing. If any rows contain errors (for
+    example, a duplicate SKU or an invalid price), you can download an error
+    report, fix the issues, and re-import just the failed rows. Successfully
+    imported rows are never imported twice.
+  </Accordion>
+
+  <Accordion title="How do I handle products with multiple variants (size, color)?">
+    Blinks uses a **parent product / variant** model. A parent product (e.g.,
+    "Classic T-Shirt") holds shared attributes like description and images.
+    Variants (e.g., "Classic T-Shirt — Small / Red") each have their own SKU,
+    barcode, cost, price, and stock level.
+
+    To create variants:
+
+    1. Open or create a product and click the **Variants** tab.
+    2. Click **Add option** and name your option (e.g., "Size"). Add option
+       values (S, M, L, XL).
+    3. Add a second option if needed (e.g., "Color" with values Red, Blue).
+    4. Blinks generates all variant combinations automatically. Review them,
+       remove any combinations you do not stock, and set a SKU for each
+       remaining variant.
+  </Accordion>
+
+  <Accordion title="What happens when stock reaches zero?">
+    When a product's on-hand quantity reaches zero, Blinks marks it as **Out of
+    stock**. The exact behaviour from that point depends on your settings:
+
+    - **Block overselling (default):** Blinks prevents new sales orders from
+      reserving stock for out-of-stock items. The item shows as unavailable on
+      connected storefronts.
+    - **Allow backorders:** If you enable backorders on a product, Blinks
+      accepts orders and reserves negative stock. The outstanding quantity
+      appears as a backorder on the product page.
+    - **Low-stock alerts:** If you have set a reorder point on the product,
+      Blinks sends a low-stock notification before stock reaches zero so you can
+      reorder in advance.
+
+    To configure these options, open the product and go to the **Inventory**
+    tab.
+  </Accordion>
+
+  <Accordion title="How do I perform a full stock count?">
+    A full stock count freezes expected quantities at the time you start and
+    lets you record actual counted quantities for every product.
+
+    1. Go to **Inventory > Stock Counts > New Count**.
+    2. Select **Full count** and choose the warehouse to count.
+    3. Optionally **freeze movements** — this pauses stock reservations during
+       the count to prevent the expected quantities from changing while you
+       count.
+    4. Count your stock using barcode scanning or manual quantity entry.
+    5. Review the **variance report** to see differences between expected and
+       counted quantities.
+    6. Click **Commit count** to apply the adjustments. Blinks posts stock
+       adjustment records for every product with a variance.
+
+    For large warehouses, consider using **cycle counts** instead — these let
+    you count a subset of products or locations on a rolling schedule without
+    freezing the entire warehouse.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Orders
+
+<AccordionGroup>
+  <Accordion title="What is the difference between a purchase order and a sales order?">
+    - **Purchase Order (PO):** A PO represents stock you are buying from a
+      supplier. You create a PO, send it to your supplier, and then receive
+      stock against it when the goods arrive. Receiving a PO increases your
+      on-hand quantities and records the cost in your inventory valuation.
+
+    - **Sales Order (SO):** A Sales Order represents stock you are selling to a
+      customer. Creating a confirmed SO reserves the specified quantities so they
+      cannot be allocated to another order. Fulfilling the SO decrements your
+      on-hand quantities and records the cost-of-goods entry.
+
+    Both order types have a **Draft** state (not yet committed) and a
+    **Confirmed** state (stock reserved or ordered). Moving an order from Draft
+    to Confirmed is the action that affects stock levels.
+  </Accordion>
+
+  <Accordion title="Can I connect my Shopify store to Blinks Inventory?">
+    Yes — the Shopify integration is one of Blinks's most-used features. Once
+    connected, Blinks receives new Shopify orders via webhook, reserves stock
+    automatically, and pushes updated stock levels back to Shopify in real time.
+
+    To connect Shopify, go to **Settings > Integrations > Shopify** and click
+    **Connect**. The setup takes about five minutes and uses OAuth — you do not
+    need to copy any API keys manually. See the full
+    [E-Commerce integration guide](/integrations/ecommerce) for step-by-step
+    instructions and details on SKU mapping.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## API & Integrations
+
+<AccordionGroup>
+  <Accordion title="Where do I find my API key?">
+    Your API keys are in **Settings > API Keys**. If you have not created one
+    yet:
+
+    1. Click **New API key**.
+    2. Give the key a descriptive name (e.g., "Zapier integration" or "ERP
+       sync").
+    3. Select the permission scopes the key needs (read-only, read-write, or
+       specific resource access).
+    4. Click **Generate**.
+
+    Copy the key immediately and store it somewhere secure — Blinks displays the
+    full key only once. If you lose it, revoke the old key and generate a new
+    one. Revoking a key is instant and does not affect other keys.
+
+    To use your key, include it in the `Authorization` header of every API
+    request:
+
+    ```http
+    Authorization: Bearer YOUR_API_KEY
+    ```
+  </Accordion>
+
+  <Accordion title="What API rate limits apply?">
+    Rate limits vary by plan:
+
+    | Plan | Requests per minute | Requests per day |
+    |---|---|---|
+    | Free | 30 | 1,000 |
+    | Starter | 120 | 10,000 |
+    | Pro | 300 | 50,000 |
+    | Enterprise | Custom | Custom |
+
+    When you exceed the per-minute limit, the API returns a `429 Too Many
+    Requests` response with a `Retry-After` header indicating how many seconds
+    to wait before retrying. Blinks does not count failed requests (4xx / 5xx)
+    toward your rate limit quota.
+
+    If your integration needs a higher limit than your plan allows, contact
+    support or upgrade to the Enterprise plan for custom rate limits.
+  </Accordion>
+
+  <Accordion title="Can I use Blinks Inventory with a custom ERP system?">
+    Yes. The Blinks REST API gives you full programmatic access to products,
+    stock levels, purchase orders, sales orders, warehouses, and more. If your
+    ERP can make HTTP requests, it can integrate with Blinks.
+
+    Common ERP integration patterns include:
+
+    - **Polling:** Your ERP calls the Blinks API on a schedule (e.g., every
+      15 minutes) to pull updated stock levels or new orders.
+    - **Webhooks:** Configure Blinks webhooks (**Settings > Webhooks**) to push
+      events to your ERP in real time when stock changes, orders are created, or
+      POs are received.
+    - **Bi-directional sync:** Your ERP creates purchase orders in Blinks via
+      the API when it generates a replenishment request, and Blinks pushes
+      receipt confirmations back to the ERP via webhook.
+
+    See the [API Reference](/api-reference/introduction) for full endpoint
+    documentation, authentication details, and code examples.
+  </Accordion>
+</AccordionGroup>

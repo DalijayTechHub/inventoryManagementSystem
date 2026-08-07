@@ -1,0 +1,212 @@
+---
+title: "Add and Import Products into Blinks Inventory"
+sidebarTitle: "Add Products"
+description: "Learn how to add individual products or bulk-import a product catalog into Blinks Inventory using the dashboard or CSV upload."
+---
+
+Before you can track stock, create purchase orders, or fulfill sales, every item you sell or store needs to exist as a product in Blinks Inventory. You can add products one at a time through the dashboard — ideal when you're onboarding a handful of SKUs — or import an entire catalog in a single CSV upload. If you're integrating with an external system, the REST API lets you push products programmatically. Choose the approach that fits your workflow below.
+
+<Tabs>
+  <Tab title="Dashboard">
+    ## Add a Single Product
+
+    Use the dashboard when you need to create or fine-tune an individual product, set up variants, or assign a preferred supplier.
+
+    <Steps>
+      ### Open the New Product form
+
+      In the left navigation, go to **Products** and click **New Product** in the top-right corner. The product creation form opens.
+
+      ### Fill in the core details
+
+      Complete the following fields:
+
+      | Field | Description |
+      |---|---|
+      | **Name** | The full display name of the product (e.g., *Classic Crew Tee*). |
+      | **Description** | A short summary used in reports and supplier communications. |
+      | **Category** | Assign the product to an existing category or create a new one. |
+      | **SKU** | Your internal stock-keeping unit code. Must be unique across your catalog. |
+      | **Barcode** | UPC, EAN, or any other barcode format you use for scanning. |
+      | **Cost Price** | What you pay your supplier per unit. Used for stock valuation reports. |
+      | **Selling Price** | The price at which you sell the product to customers. |
+
+      ### Add variants (optional)
+
+      If the product comes in multiple options — such as size or color — click **Add Variants** and define your variant attributes:
+
+      1. Click **Add Attribute**, enter a name (e.g., *Size*), then list the values (e.g., *S*, *M*, *L*, *XL*).
+      2. Repeat for any additional attributes (e.g., *Color* → *Blue*, *Red*, *White*).
+      3. Blinks Inventory automatically generates a SKU matrix. Review and adjust individual variant SKUs, costs, and prices as needed.
+
+      ### Set the reorder point
+
+      Scroll to the **Stock Settings** section and enter a **Reorder Point** — the quantity at which Blinks Inventory flags the product as *Low Stock* and triggers an alert. Set this to the minimum quantity you're comfortable carrying before placing a new order.
+
+      ### Assign a preferred supplier
+
+      In the **Sourcing** section, select a supplier from the **Preferred Supplier** dropdown. This supplier is pre-populated when you create a purchase order for this product. If the supplier doesn't exist yet, go to **Suppliers > New Supplier** first.
+
+      ### Save the product
+
+      Click **Save Product**. The product appears in your catalog immediately and is ready for stock adjustments, purchase orders, and sales orders.
+    </Steps>
+
+    <Note>
+      SKUs are permanent once a product has been involved in any transaction. If you need to change a SKU after that point, contact support — a migration is required to preserve historical records.
+    </Note>
+  </Tab>
+
+  <Tab title="CSV Import">
+    ## Bulk Import via CSV
+
+    CSV import is the fastest way to bring in an existing catalog. Prepare your spreadsheet, map it to the required columns, and upload it in seconds.
+
+    ### Required CSV columns
+
+    Your CSV file must include a header row with the following column names exactly as shown:
+
+    | Column | Required | Description |
+    |---|---|---|
+    | `name` | ✅ | Full product name. |
+    | `sku` | ✅ | Unique identifier for the product. |
+    | `barcode` | ✗ | UPC, EAN, or other barcode value. |
+    | `category` | ✗ | Category name. Created automatically if it doesn't exist. |
+    | `cost_price` | ✅ | Numeric value without currency symbols (e.g., `12.50`). |
+    | `selling_price` | ✅ | Numeric value without currency symbols. |
+    | `reorder_point` | ✗ | Integer quantity at which low-stock alerts fire. Defaults to `0`. |
+
+    ### Sample CSV
+
+    ```csv
+    name,sku,barcode,category,cost_price,selling_price,reorder_point
+    Classic Crew Tee,TSHIRT-S-WHT,012345678901,Apparel,8.00,24.99,20
+    Classic Crew Tee,TSHIRT-M-WHT,012345678902,Apparel,8.00,24.99,20
+    Classic Crew Tee,TSHIRT-L-BLU,012345678903,Apparel,8.50,24.99,15
+    Slim Fit Chinos,CHINO-32-KHK,012345678904,Bottoms,14.00,49.99,10
+    Canvas Tote Bag,TOTE-NAT-OS,012345678905,Accessories,3.50,18.00,25
+    ```
+
+    <Tip>
+      Download the official template from **Products > Import > Download Template** to make sure your column headers and data types are formatted correctly before you start filling in data.
+    </Tip>
+
+    <Steps>
+      ### Prepare your CSV file
+
+      Build your spreadsheet using the columns above. Save the file in UTF-8 encoded CSV format. Remove any extra sheets, merged cells, or formula columns before saving.
+
+      ### Open the import wizard
+
+      Navigate to **Products** in the left sidebar, then click **Import** in the top-right corner.
+
+      ### Upload your file
+
+      Drag your CSV onto the upload area, or click **Browse** to select it from your file system. Blinks Inventory parses the file and shows a preview of the first ten rows.
+
+      ### Review and confirm the column mapping
+
+      Check that each column in your file maps to the correct Blinks Inventory field. If any column header doesn't match exactly, use the dropdown next to that column to select the correct target field.
+
+      ### Start the import
+
+      Click **Import Products**. A progress bar tracks the operation. When it completes, you'll see a summary showing:
+
+      - ✅ Products created
+      - ⚠️ Rows skipped (with reasons, e.g., duplicate SKU)
+      - ❌ Errors (e.g., missing required field)
+
+      ### Fix errors and re-import if needed
+
+      Download the **Error Report** to see exactly which rows failed and why. Correct the issues in your CSV and re-upload only the failed rows.
+    </Steps>
+
+    <Note>
+      Importing a SKU that already exists in your catalog updates the existing product record rather than creating a duplicate. Use this behavior to bulk-update prices or reorder points across your catalog.
+    </Note>
+  </Tab>
+
+  <Tab title="API">
+    ## Import via API
+
+    Use the `POST /products` endpoint to create products programmatically from an external system, ERP, or integration pipeline.
+
+    ### Endpoint
+
+    ```
+    POST https://api.blinks.it/v1/products
+    ```
+
+    ### Authentication
+
+    All API requests require a Bearer token. Generate an API key in **Settings > API Keys**.
+
+    ### Create a single product
+
+    ```bash
+    curl -X POST https://api.blinks.it/v1/products \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "Classic Crew Tee",
+        "sku": "TSHIRT-L-BLU",
+        "barcode": "012345678903",
+        "category": "Apparel",
+        "cost_price": 8.50,
+        "selling_price": 24.99,
+        "reorder_point": 15,
+        "description": "100% cotton unisex crew neck tee in blue, size large."
+      }'
+    ```
+
+    ### Sample response
+
+    ```json
+    {
+      "id": "prod_01HZ9XKBT3W8YNMQ7V6P",
+      "name": "Classic Crew Tee",
+      "sku": "TSHIRT-L-BLU",
+      "barcode": "012345678903",
+      "category": "Apparel",
+      "cost_price": 8.50,
+      "selling_price": 24.99,
+      "reorder_point": 15,
+      "created_at": "2025-06-10T14:23:01Z"
+    }
+    ```
+
+    ### Bulk create products
+
+    To create multiple products in one request, pass an array to the same endpoint:
+
+    ```bash
+    curl -X POST https://api.blinks.it/v1/products \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '[
+        {
+          "name": "Classic Crew Tee",
+          "sku": "TSHIRT-S-WHT",
+          "category": "Apparel",
+          "cost_price": 8.00,
+          "selling_price": 24.99,
+          "reorder_point": 20
+        },
+        {
+          "name": "Canvas Tote Bag",
+          "sku": "TOTE-NAT-OS",
+          "category": "Accessories",
+          "cost_price": 3.50,
+          "selling_price": 18.00,
+          "reorder_point": 25
+        }
+      ]'
+    ```
+
+    The API returns an array of created product objects, with a separate `errors` array listing any SKUs that failed along with the reason.
+
+    <Note>
+      The bulk endpoint processes up to **500 products per request**. For larger catalogs, split your payload into batches and send them sequentially.
+    </Note>
+  </Tab>
+</Tabs>

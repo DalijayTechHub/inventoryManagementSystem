@@ -1,0 +1,117 @@
+---
+title: "Connect Blinks Inventory to QuickBooks or Xero"
+sidebarTitle: "Accounting"
+description: "Sync inventory costs, purchase orders, and stock valuations with QuickBooks or Xero to keep your financial records accurate."
+---
+
+Accurate financial reporting depends on inventory data that is always current — but keeping your accounting platform in sync manually means exporting spreadsheets, importing journals, and hoping nothing gets lost in the gap between systems. The Blinks accounting integration eliminates that gap by pushing inventory values, purchase costs, and cost-of-goods figures directly into QuickBooks Online or Xero as transactions occur, so your books reflect reality without anyone doing data entry.
+
+## Supported platforms
+
+Blinks currently supports the following accounting platforms:
+
+- **QuickBooks Online** — Full sync of inventory asset accounts, purchase order costs, and COGS on sales orders.
+- **Xero** — Sync of inventory valuations, bills from purchase orders, and sales invoice line items.
+
+<Note>
+  QuickBooks Desktop (the locally installed version) is not currently supported.
+  If you use QuickBooks Desktop, consider migrating to QuickBooks Online or use
+  the Blinks REST API to build a custom sync.
+</Note>
+
+## What syncs
+
+The accounting integration keeps three categories of data aligned between Blinks and your accounting platform:
+
+| Data | Blinks source | Accounting entry |
+|---|---|---|
+| Inventory asset value | On-hand quantity × average cost | Inventory asset account balance |
+| Purchase order costs | PO line items on receipt | Accounts payable bill or expense |
+| Cost of goods sold | Sales order fulfilment | COGS journal entry on each sale |
+
+Blinks uses the **weighted average cost** method for inventory valuation. Each time stock is received at a new cost, Blinks recalculates the average cost per unit and updates the inventory asset value pushed to your accounting platform.
+
+## Connecting QuickBooks Online
+
+Before you start, make sure your QuickBooks Online company file has at least one **Inventory Asset** account and one **Cost of Goods Sold** account set up under your chart of accounts. You will map these during setup.
+
+<Warning>
+  Map your inventory accounts **before** enabling sync. If you enable sync
+  without completing account mapping, Blinks will pause all outgoing entries and
+  queue them until mapping is complete — but entries that were never queued
+  (prior to connecting) will not be back-filled automatically.
+</Warning>
+
+<Steps>
+  <Step title="Open the QuickBooks connector">
+    In Blinks, navigate to **Settings > Integrations > QuickBooks**. Click
+    **Connect** on the QuickBooks Online tile.
+  </Step>
+  <Step title="Sign in with Intuit">
+    Blinks redirects you to the Intuit authorization page. Sign in with the
+    Intuit account that owns your QuickBooks Online company, select the company
+    file you want to connect, and click **Authorize**. Intuit redirects you back
+    to Blinks once the OAuth handshake is complete.
+  </Step>
+  <Step title="Map inventory accounts">
+    Blinks presents the **Account Mapping** screen with three fields:
+
+    - **Inventory Asset account** — Select the QuickBooks account that holds the
+      monetary value of your stock (typically named "Inventory Asset").
+    - **COGS account** — Select the account used to record the cost of items
+      sold (typically "Cost of Goods Sold").
+    - **Accounts Payable account** — Select the AP account to which purchase
+      order bills should be posted (typically "Accounts Payable").
+
+    If you manage inventory across multiple product categories that use different
+    accounts, click **Add category mapping** to set per-category overrides.
+  </Step>
+  <Step title="Enable sync">
+    Once all required accounts are mapped, toggle **Enable QuickBooks sync** to
+    **On**. Blinks immediately pushes the current inventory asset valuation as
+    an opening entry, then begins syncing new transactions in real time.
+  </Step>
+</Steps>
+
+## Connecting Xero
+
+The Xero setup follows the same four-step pattern. Navigate to **Settings > Integrations > Xero**, click **Connect**, and authorize via the Xero OAuth 2.0 flow. During account mapping, you will select your Xero **Inventory asset account**, **COGS account**, and **Accounts payable account** from your Xero chart of accounts.
+
+<Tip>
+  If you use Xero's built-in inventory tracking, disable it for the product
+  categories you manage in Blinks before enabling the Blinks sync. Running
+  both simultaneously can result in double-counted inventory values.
+</Tip>
+
+## Sync frequency
+
+| Trigger | Sync behaviour |
+|---|---|
+| Stock received (PO receipt) | Real-time — bill posted to AP within seconds |
+| Sales order fulfilled | Real-time — COGS journal entry posted immediately |
+| Manual stock adjustment | Real-time — asset value updated within seconds |
+| Inventory valuation report | Daily batch — full reconciliation runs at 02:00 UTC |
+
+The daily batch reconciliation acts as a safety net. It compares the running balance Blinks has been pushing with the actual account balance in your accounting platform and posts a correcting journal entry if there is any discrepancy.
+
+## Handling sync errors
+
+When a transaction fails to post — for example, because a mapped account was deleted in QuickBooks — Blinks marks it with an **Error** status and surfaces it in the sync log.
+
+To review and resolve sync errors:
+
+1. Go to **Settings > Integrations > QuickBooks** (or Xero).
+2. Click **View sync log**.
+3. Filter by **Status: Error** to see only failed entries.
+4. Click any error row to see the full error message returned by the accounting platform.
+5. Fix the underlying issue (e.g., restore a deleted account or update the account mapping), then click **Retry** on the failed entry.
+
+<Note>
+  Blinks retries failed sync entries automatically up to three times with
+  exponential back-off. If all three retries fail, the entry is marked as
+  permanently failed and requires manual review.
+</Note>
+
+## Disconnecting the accounting integration
+
+To disconnect QuickBooks or Xero, go to **Settings > Integrations**, click **⋯** on the connector tile, and select **Disconnect**. Disconnecting stops all future sync entries. It does not delete or reverse any entries already posted to your accounting platform. Reconnecting requires repeating the full OAuth and account mapping flow.

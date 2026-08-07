@@ -1,0 +1,267 @@
+---
+title: "Inventory API — Query and Adjust Stock Levels"
+sidebarTitle: "Inventory"
+description: "REST API endpoints to query real-time stock levels by product or warehouse and submit manual inventory adjustments."
+---
+
+The Inventory API lets you read live stock levels across every warehouse in your account and submit manual adjustments to correct discrepancies, record shrinkage, or process returns. Stock data is updated in real time as orders are fulfilled and purchase orders are received, so the quantities you read here always reflect the current state of your warehouses.
+
+---
+
+## List inventory levels
+
+Retrieve inventory records across all products and warehouses. Use the filter parameters to narrow results to a specific product, warehouse, or SKU, or to surface only items that have fallen below their reorder point.
+
+```bash
+curl -X GET "https://api.blinks.it/v1/inventory?warehouse_id=wh_01A2B3C4D5&low_stock=true&page=1&per_page=50" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Query parameters
+
+<ParamField query="product_id" type="string">
+  Filter results to a specific product by its ID.
+</ParamField>
+
+<ParamField query="warehouse_id" type="string">
+  Filter results to a specific warehouse by its ID.
+</ParamField>
+
+<ParamField query="sku" type="string">
+  Filter results by exact SKU match.
+</ParamField>
+
+<ParamField query="page" type="integer" default="1">
+  The page number to return.
+</ParamField>
+
+<ParamField query="per_page" type="integer" default="20">
+  The number of records to return per page. Maximum is 100.
+</ParamField>
+
+<ParamField query="low_stock" type="boolean" default="false">
+  When `true`, returns only products whose `available_quantity` is at or below their configured `reorder_point`.
+</ParamField>
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "product_id": "prod_01H8X2K9M3N4P5Q6R7S8T9U0V1",
+      "sku": "WKB-PRO-001",
+      "warehouse_id": "wh_01A2B3C4D5E6F7G8H9I0J1K2",
+      "available_quantity": 18,
+      "reserved_quantity": 5,
+      "on_order_quantity": 100,
+      "total_quantity": 23
+    },
+    {
+      "product_id": "prod_02J9Y3L0N4O5P6Q7R8S9T0U1V2",
+      "sku": "USB-HUB-7P",
+      "warehouse_id": "wh_01A2B3C4D5E6F7G8H9I0J1K2",
+      "available_quantity": 12,
+      "reserved_quantity": 2,
+      "on_order_quantity": 0,
+      "total_quantity": 14
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "per_page": 50,
+    "total": 2
+  }
+}
+```
+
+<ResponseField name="data" type="array">
+  Array of inventory records.
+
+  <Expandable title="Inventory record fields">
+    <ResponseField name="product_id" type="string">
+      The ID of the product this record belongs to.
+    </ResponseField>
+    <ResponseField name="sku" type="string">
+      The SKU of the product or variant.
+    </ResponseField>
+    <ResponseField name="warehouse_id" type="string">
+      The ID of the warehouse holding this stock.
+    </ResponseField>
+    <ResponseField name="available_quantity" type="integer">
+      Units currently available to fulfill new orders (total minus reserved).
+    </ResponseField>
+    <ResponseField name="reserved_quantity" type="integer">
+      Units allocated to open sales orders but not yet shipped.
+    </ResponseField>
+    <ResponseField name="on_order_quantity" type="integer">
+      Units expected from open purchase orders that have not yet been received.
+    </ResponseField>
+    <ResponseField name="total_quantity" type="integer">
+      Total physical units on hand (`available_quantity` + `reserved_quantity`).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## Get inventory for a product
+
+Retrieve the full inventory picture for a single product, broken down by warehouse. This is useful when a product is stocked across multiple locations and you need to see each warehouse's contribution.
+
+```bash
+curl -X GET "https://api.blinks.it/v1/inventory/prod_01H8X2K9M3N4P5Q6R7S8T9U0V1" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Path parameters
+
+<ParamField path="product_id" type="string" required>
+  The unique ID of the product whose inventory you want to retrieve.
+</ParamField>
+
+### Response
+
+```json
+{
+  "data": {
+    "product_id": "prod_01H8X2K9M3N4P5Q6R7S8T9U0V1",
+    "sku": "WKB-PRO-001",
+    "name": "Wireless Keyboard Pro",
+    "total_available": 63,
+    "total_reserved": 9,
+    "total_on_order": 100,
+    "warehouses": [
+      {
+        "warehouse_id": "wh_01A2B3C4D5E6F7G8H9I0J1K2",
+        "warehouse_name": "East Coast Fulfillment",
+        "available_quantity": 45,
+        "reserved_quantity": 7,
+        "on_order_quantity": 100,
+        "total_quantity": 52
+      },
+      {
+        "warehouse_id": "wh_02B3C4D5E6F7G8H9I0J1K2L3",
+        "warehouse_name": "West Coast Fulfillment",
+        "available_quantity": 18,
+        "reserved_quantity": 2,
+        "on_order_quantity": 0,
+        "total_quantity": 20
+      }
+    ]
+  }
+}
+```
+
+<ResponseField name="total_available" type="integer">
+  Sum of `available_quantity` across all warehouses for this product.
+</ResponseField>
+
+<ResponseField name="total_reserved" type="integer">
+  Sum of `reserved_quantity` across all warehouses for this product.
+</ResponseField>
+
+<ResponseField name="total_on_order" type="integer">
+  Sum of `on_order_quantity` across all warehouses for this product.
+</ResponseField>
+
+<ResponseField name="warehouses" type="array">
+  Per-warehouse breakdown of stock levels.
+
+  <Expandable title="Warehouse stock fields">
+    <ResponseField name="warehouse_id" type="string">
+      Unique ID of the warehouse.
+    </ResponseField>
+    <ResponseField name="warehouse_name" type="string">
+      Display name of the warehouse.
+    </ResponseField>
+    <ResponseField name="available_quantity" type="integer">
+      Units available in this warehouse.
+    </ResponseField>
+    <ResponseField name="reserved_quantity" type="integer">
+      Units reserved in this warehouse.
+    </ResponseField>
+    <ResponseField name="on_order_quantity" type="integer">
+      Units on order destined for this warehouse.
+    </ResponseField>
+    <ResponseField name="total_quantity" type="integer">
+      Total physical units in this warehouse.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## Adjust stock quantity
+
+Submit a manual inventory adjustment to correct stock levels in a specific warehouse. Every adjustment creates an immutable movement record for audit purposes, so you always have a full history of how stock levels changed over time.
+
+<Warning>
+  Passing a negative `quantity_delta` will reduce the available stock in the specified warehouse. Blinks Inventory does not prevent you from pushing a product's `available_quantity` below zero — ensure your delta is accurate before submitting, and always supply a `reason` so the movement is traceable in your audit log.
+</Warning>
+
+```bash
+curl -X POST "https://api.blinks.it/v1/inventory/adjust" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sku": "WKB-PRO-001",
+    "warehouse_id": "wh_01A2B3C4D5E6F7G8H9I0J1K2",
+    "quantity_delta": -3,
+    "reason": "damage",
+    "notes": "3 units damaged during transit — confirmed by warehouse supervisor."
+  }'
+```
+
+### Request body
+
+<ParamField body="sku" type="string" required>
+  The SKU of the product or variant to adjust.
+</ParamField>
+
+<ParamField body="warehouse_id" type="string" required>
+  The ID of the warehouse where the adjustment should be applied.
+</ParamField>
+
+<ParamField body="quantity_delta" type="integer" required>
+  The number of units to add (positive) or remove (negative) from the current stock level.
+</ParamField>
+
+<ParamField body="reason" type="string">
+  The reason for the adjustment. Accepted values: `shrinkage`, `damage`, `return`, `cycle_count`, `other`.
+</ParamField>
+
+<ParamField body="notes" type="string">
+  Optional free-text notes to attach to the movement record for audit purposes.
+</ParamField>
+
+### Response
+
+Returns the updated inventory record for the adjusted SKU and warehouse, plus the `movement_id` of the audit record that was created.
+
+```json
+{
+  "data": {
+    "product_id": "prod_01H8X2K9M3N4P5Q6R7S8T9U0V1",
+    "sku": "WKB-PRO-001",
+    "warehouse_id": "wh_01A2B3C4D5E6F7G8H9I0J1K2",
+    "available_quantity": 42,
+    "reserved_quantity": 7,
+    "on_order_quantity": 100,
+    "total_quantity": 49,
+    "movement_id": "mov_09Z8Y7X6W5V4U3T2S1R0Q9P8"
+  }
+}
+```
+
+<ResponseField name="available_quantity" type="integer">
+  The updated available quantity after the adjustment has been applied.
+</ResponseField>
+
+<ResponseField name="movement_id" type="string">
+  The unique ID of the inventory movement record created by this adjustment. Use this ID to look up the adjustment in your audit log.
+</ResponseField>
+
+<Tip>
+  Use `reason: "cycle_count"` when reconciling physical counts against your records. Cycle count adjustments are highlighted separately in the Inventory Movements report inside the Blinks Inventory dashboard.
+</Tip>

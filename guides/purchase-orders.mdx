@@ -1,0 +1,128 @@
+---
+title: "Create and Manage Purchase Orders with Suppliers"
+sidebarTitle: "Purchase Orders"
+description: "Learn how to create purchase orders in Blinks Inventory, send them to suppliers, and receive stock when goods arrive."
+---
+
+A purchase order (PO) is the formal document you send to a supplier to request goods at an agreed price. In Blinks Inventory, POs serve as the control point for your inbound supply chain: they record what you ordered, from whom, and at what cost, and they drive the stock increase when goods are received. Every unit that enters your warehouses should flow through a PO so your inventory records, cost of goods, and supplier performance data stay accurate.
+
+## Purchase Order Statuses
+
+Every PO moves through a defined lifecycle. Understanding these statuses helps your team coordinate purchasing, warehousing, and finance work:
+
+| Status | Meaning |
+|---|---|
+| **Draft** | The PO has been created but not yet sent to the supplier. You can still edit all fields. |
+| **Sent** | The PO has been transmitted to the supplier via email or downloaded as a PDF. Editing is locked unless you revert to Draft. |
+| **Partial** | Some — but not all — line items have been received. Stock has been updated for received quantities only. |
+| **Received** | All line items have been fully received and booked into inventory. |
+| **Cancelled** | The PO was voided. No stock movements are recorded. |
+
+## Create a Purchase Order
+
+<Steps>
+  ### Open the New PO form
+
+  In the left navigation, go to **Purchase Orders** and click **New Purchase Order**.
+
+  ### Select a supplier
+
+  Choose a supplier from the **Supplier** dropdown. If the supplier isn't listed, go to **Suppliers > New Supplier** to add them first. Selecting a supplier pre-fills their contact email and default payment terms.
+
+  ### Add line items
+
+  Click **Add Item** for each product you're ordering:
+
+  1. Search for the product by name or SKU in the **Product** field.
+  2. Enter the **Quantity** you're ordering.
+  3. Confirm or override the **Unit Cost** — it defaults to the product's stored cost price.
+
+  Repeat until all products are on the order. The PO total updates automatically.
+
+  ### Set the expected delivery date
+
+  Enter the date you expect the goods to arrive in the **Expected Delivery** field. Blinks Inventory uses this date in the Reorder Report and delivery performance tracking.
+
+  ### Add notes or a reference number (optional)
+
+  Use the **Supplier Reference** field to record the supplier's own order number or quote number. Add any delivery instructions or internal notes in the **Notes** field.
+
+  ### Save or send the PO
+
+  - Click **Save as Draft** to keep the PO editable while you finalize the order.
+  - Click **Send to Supplier** to lock the PO and transmit it (see the next section).
+</Steps>
+
+## Send a PO to Your Supplier
+
+Once a PO is ready, you have two ways to get it to your supplier:
+
+**Email directly from Blinks Inventory:**
+Open the PO, click **Send**, and confirm the recipient address (pulled from the supplier record). Customize the subject line and message body if needed, then click **Send Email**. The PO status changes to *Sent* and a timestamped record of the send is logged.
+
+**Export as PDF:**
+Click **Export PDF** to download a formatted purchase order document. Attach it to your own email, procurement system, or portal. After downloading, click **Mark as Sent** to update the PO status.
+
+<Note>
+  Sending a PO locks it from further editing to preserve the agreed order details. If you need to make changes after sending — for example, to add a line item — click **Revert to Draft**, make your edits, and re-send. The supplier receives an updated copy and the previous send is archived in the PO history.
+</Note>
+
+## Receive Stock Against a PO
+
+When goods arrive, you receive them against the PO to update your inventory quantities automatically.
+
+<Steps>
+  ### Open the purchase order
+
+  Go to **Purchase Orders** and click the PO you're receiving against. Confirm the status is **Sent** or **Partial**.
+
+  ### Click Receive Stock
+
+  Click the **Receive Stock** button in the top-right corner of the PO. A receive dialog opens, listing each line item with an **Ordered Qty** column and a **Received Qty** input.
+
+  ### Enter received quantities
+
+  For each line item, type the quantity of units that physically arrived. These numbers don't have to match the ordered quantity — Blinks Inventory handles partial receipts automatically.
+
+  ### Select the destination warehouse
+
+  Choose the warehouse where the goods are being stored from the **Receive into Warehouse** dropdown.
+
+  ### Add a delivery reference (optional)
+
+  Enter the supplier's delivery note number or shipment tracking number in the **Delivery Reference** field for traceability.
+
+  ### Confirm the receipt
+
+  Click **Confirm Receipt**. Blinks Inventory immediately:
+
+  - Adds the received quantities to the selected warehouse's stock.
+  - Updates the PO status to **Partial** (if some items remain outstanding) or **Received** (if all items are now fully received).
+  - Logs a stock movement record for each received line item.
+</Steps>
+
+<Note>
+  **Partial receipts are fully supported.** If your supplier ships in multiple consignments, simply click **Receive Stock** again when the next delivery arrives and enter the quantities from that shipment. You can receive against the same PO as many times as needed until all lines are fully received. Each receipt is logged separately in the PO history so you have a complete audit trail.
+</Note>
+
+## How Received Stock Updates Inventory
+
+When you confirm a receipt, Blinks Inventory creates a stock movement of type `purchase_receipt` for each received line item. The movement records:
+
+- Product and variant
+- Quantity received
+- Destination warehouse
+- Unit cost at time of receipt (used for weighted average cost calculations)
+- Linked PO number and delivery reference
+
+These movements feed directly into the **Movement History** report and the **Stock Valuation** report, so your financial data stays in sync with your physical stock the moment goods are booked in.
+
+## View PO History
+
+Go to **Purchase Orders** to see a full list of all POs, past and present. Use the filters to narrow the list:
+
+- **Status** — filter by Draft, Sent, Partial, Received, or Cancelled.
+- **Supplier** — show only POs from a specific supplier.
+- **Date range** — filter by creation date or expected delivery date.
+
+Click any PO to open its detail view, where you can see the original line items, all receive events with timestamps, any notes, and a full audit log of status changes. Export the full PO history to CSV from **Reports > Purchase Order Report**.

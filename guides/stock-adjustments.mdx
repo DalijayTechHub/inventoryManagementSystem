@@ -1,0 +1,129 @@
+---
+title: "Adjust Stock Levels for Shrinkage, Damage, or Cycle Counts"
+sidebarTitle: "Stock Adjustments"
+description: "Manually correct inventory levels in Blinks Inventory to account for shrinkage, damage, returns, or physical count discrepancies."
+---
+
+Even with a well-run warehouse, your system's stock counts will occasionally drift from physical reality. Items get damaged, goods go missing, returns arrive without a linked sales order, and physical counts reveal discrepancies. Stock adjustments are how you bring Blinks Inventory back in line with what's actually on your shelves. Every adjustment is logged with a reason and optional notes, giving you a clear audit trail for accounting, loss-prevention, and operational reviews.
+
+## When to Use a Stock Adjustment
+
+Use a stock adjustment when:
+
+- A **cycle count or stocktake** reveals a discrepancy between system quantities and physical quantities.
+- Goods are **damaged** in the warehouse or in transit and can no longer be sold.
+- **Shrinkage** is discovered — theft or unexplained loss that wasn't captured by a transaction.
+- A **customer return** arrives but was not processed through a linked sales order return flow.
+- You need a catch-all correction for any other reason that doesn't map to a PO or SO.
+
+<Note>
+  Stock adjustments are not a substitute for receiving goods against a purchase order or processing returns against a sales order. Use those workflows when the stock change can be traced to a specific transaction — adjustments are for corrections that have no corresponding document.
+</Note>
+
+## Adjustment Reasons
+
+Choose the reason that most accurately describes why the adjustment is needed. Reasons are recorded on every adjustment and are available as a filter in the adjustment history and reports.
+
+| Reason | When to use it |
+|---|---|
+| **Shrinkage** | Unexplained stock loss, including suspected theft or goods that have gone missing without a known cause. |
+| **Damage** | Units that are physically damaged and can no longer be sold — write them off with this reason. |
+| **Return** | Stock received back from a customer outside of a formal return order workflow. |
+| **Cycle Count** | Corrections resulting from a scheduled or ad hoc physical count of warehouse inventory. |
+| **Other** | Any adjustment that doesn't fit the above categories. Always add a note explaining the reason. |
+
+## Create a Stock Adjustment in the Dashboard
+
+<Steps>
+  ### Open the adjustment form
+
+  Go to **Inventory** in the left navigation and click **Adjust Stock** in the top-right corner.
+
+  ### Select the product and location
+
+  Use the **Product** search field to find the item by name, SKU, or barcode. Then select the **Warehouse** and, if your warehouse uses bin locations, the specific **Location** where the adjustment is occurring.
+
+  ### Enter the quantity delta
+
+  In the **Quantity Change** field, enter:
+  - A **positive number** to add stock (e.g., `+10` for a return or a count that found more units than expected).
+  - A **negative number** to remove stock (e.g., `-3` for damaged goods).
+
+  The current on-hand quantity and the resulting new quantity are displayed in real time so you can confirm the adjustment looks correct before saving.
+
+  ### Choose a reason
+
+  Select the appropriate reason from the **Reason** dropdown (see the table above). The reason is mandatory and is included in all reports and audit logs.
+
+  ### Add notes
+
+  Use the **Notes** field to record any additional context — for example, the physical count sheet reference, a description of how the damage occurred, or the customer's name for an informal return. Notes are optional but strongly recommended for traceability.
+
+  ### Save the adjustment
+
+  Click **Save Adjustment**. The stock change takes effect immediately and is reflected in the Inventory dashboard and all stock-level calculations.
+</Steps>
+
+## Review Adjustment History
+
+Every adjustment is permanently recorded and available for review. To view the history:
+
+1. Go to **Inventory** and click the **Adjustments** tab, or navigate directly to **Reports > Movement History** and filter by movement type **Adjustment**.
+2. Use the date range, warehouse, product, and reason filters to narrow the list.
+3. Click any adjustment record to view its full details: who made it, when, the before/after quantities, the reason, and any notes.
+
+<Tip>
+  Export the adjustment history to CSV for use in accounting reconciliations or loss-prevention reviews. Go to **Reports > Movement History**, apply your filters, and click **Export CSV**.
+</Tip>
+
+## Make Adjustments via API
+
+Use the `POST /inventory/adjust` endpoint to record stock adjustments programmatically — for example, from a cycle count mobile app or an automated quality control system.
+
+### Request
+
+```bash
+curl -X POST https://api.blinks.it/v1/inventory/adjust \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sku": "TSHIRT-L-BLU",
+    "warehouse_id": "wh_123",
+    "quantity_delta": -3,
+    "reason": "damage",
+    "notes": "Dropped in transit — packaging crushed, items unsaleable"
+  }'
+```
+
+### Request body fields
+
+| Field | Required | Description |
+|---|---|---|
+| `sku` | ✅ | The SKU of the product to adjust. |
+| `warehouse_id` | ✅ | The ID of the warehouse where the adjustment applies. |
+| `quantity_delta` | ✅ | Positive integer to add stock; negative integer to remove stock. |
+| `reason` | ✅ | One of: `shrinkage`, `damage`, `return`, `cycle_count`, `other`. |
+| `notes` | ✗ | Free-text explanation. Required when `reason` is `other`. |
+
+### Sample response
+
+```json
+{
+  "adjustment_id": "adj_01HZB3KXMR7WNPQ4T9CV",
+  "sku": "TSHIRT-L-BLU",
+  "warehouse_id": "wh_123",
+  "quantity_delta": -3,
+  "quantity_before": 12,
+  "quantity_after": 9,
+  "reason": "damage",
+  "notes": "Dropped in transit — packaging crushed, items unsaleable",
+  "adjusted_by": "api_key:key_01HZA1",
+  "adjusted_at": "2025-06-10T16:45:22Z"
+}
+```
+
+The response includes `quantity_before` and `quantity_after` so your integration can confirm the adjustment was applied correctly and log it on your end.
+
+<Note>
+  API adjustments appear in the adjustment history alongside dashboard adjustments, attributed to the API key used. Create separate API keys for different integrations — in **Settings > API Keys** — so you can identify the source of each programmatic adjustment in your audit logs.
+</Note>

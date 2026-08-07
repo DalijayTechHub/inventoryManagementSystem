@@ -1,0 +1,87 @@
+---
+title: "Integrations Overview: Connect Blinks Inventory to Your Stack"
+sidebarTitle: "Overview"
+description: "Connect Blinks Inventory with e-commerce platforms, accounting software, barcode scanners, and custom systems via REST API."
+---
+
+Blinks Inventory becomes significantly more powerful when it talks to the rest of your business stack. By connecting your e-commerce storefronts, accounting software, and scanning hardware, you eliminate manual data entry, reduce the risk of overselling, and keep every channel in sync from a single source of truth. Whether you run a Shopify store, reconcile books in QuickBooks, or need a fully custom integration with an in-house ERP, Blinks has a pathway for you.
+
+## Why integrations matter
+
+Running inventory in isolation means your team is constantly copying numbers from one system to another — a slow, error-prone process that only gets worse as order volume grows. Integrations solve that by:
+
+- **Syncing stock across every sales channel** so a sale on Shopify immediately reduces on-hand quantities in Blinks, and that reduction flows back to every other connected storefront.
+- **Automating the order flow** so incoming customer orders create Blinks sales orders automatically, trigger stock reservations, and feed fulfilment queues without anyone touching a spreadsheet.
+- **Keeping financial records accurate** by pushing inventory valuations and cost-of-goods figures directly into your accounting platform as transactions happen.
+- **Speeding up warehouse operations** through barcode and QR code scanning that ties physical movements directly to digital records.
+
+## Integration categories
+
+Blinks integrations fall into four broad categories. Each is designed for a different part of your workflow, and you can enable as many as your plan allows.
+
+| Category | Purpose | Auth method |
+|---|---|---|
+| E-Commerce | Sync products, stock, and orders with online storefronts | OAuth 2.0 |
+| Accounting | Push inventory costs and valuations to financial software | OAuth 2.0 |
+| Barcode / Hardware | Connect USB or Bluetooth scanners and mobile devices | Plug-and-play / App login |
+| Custom (API) | Build any integration using the Blinks REST API | API key (Bearer token) |
+
+## How integrations work
+
+**Platform integrations** (e-commerce and accounting) use OAuth 2.0. When you connect one of these platforms, Blinks redirects you to that platform's authorization page, you grant the requested permissions, and a secure token is exchanged behind the scenes. You never paste passwords into Blinks. Tokens are encrypted at rest and can be revoked from either side at any time.
+
+**Custom integrations** use long-lived API keys that you generate in Blinks and include as a `Bearer` token in every request to the REST API. You can create multiple keys with different permission scopes and rotate or revoke them at any time without affecting other keys.
+
+<Note>
+  All integration data is transmitted over TLS 1.2 or higher. Blinks never stores
+  plain-text credentials for connected platforms.
+</Note>
+
+## Finding integrations in the dashboard
+
+All integration settings live in one place:
+
+1. Click **Settings** in the left navigation bar.
+2. Select **Integrations** from the Settings menu.
+3. Choose the integration you want to configure.
+
+Each integration tile shows its current connection status (Connected, Disconnected, or Error) and a shortcut to its sync log so you can diagnose issues without leaving the page.
+
+## Explore integrations
+
+Dive into each category to get step-by-step setup instructions, sync details, and troubleshooting tips.
+
+<CardGroup cols={2}>
+  <Card
+    title="E-Commerce"
+    icon="cart-shopping"
+    href="/integrations/ecommerce"
+  >
+    Connect Shopify, WooCommerce, or Magento to sync products, stock levels, and
+    incoming orders in real time.
+  </Card>
+  <Card
+    title="Accounting"
+    icon="calculator"
+    href="/integrations/accounting"
+  >
+    Push inventory costs, purchase order values, and COGS to QuickBooks Online
+    or Xero automatically.
+  </Card>
+  <Card
+    title="Barcode Scanning"
+    icon="barcode"
+    href="/integrations/barcode-scanning"
+  >
+    Speed up receiving, pick-and-pack, and stock counts using USB scanners or
+    the Blinks mobile app.
+  </Card>
+  <Card
+    title="REST API"
+    icon="code"
+    href="/api-reference/introduction"
+  >
+    Build fully custom integrations with any ERP, marketplace, or internal tool
+    using the Blinks REST API.
+  </Card>
+</CardGroup>

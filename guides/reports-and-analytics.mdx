@@ -1,0 +1,104 @@
+---
+title: "Inventory Reports and Analytics in Blinks Inventory"
+sidebarTitle: "Reports"
+description: "Generate stock valuation, movement history, reorder, and supplier performance reports to make data-driven inventory decisions."
+---
+
+Blinks Inventory collects data from every stock movement, purchase order, and sales order in your account and surfaces it through a set of purpose-built reports. Whether you need to know the current value of your stock for an accounting period, identify which products are about to run out, or evaluate which suppliers are delivering on time, the Reports section gives you the data in seconds — either on screen, as a CSV, or as a scheduled email delivered to your inbox automatically.
+
+## Navigate to Reports
+
+Click **Reports** in the left navigation to open the reports hub. The hub displays all available reports as cards. Click any report card to open it.
+
+## Available Reports
+
+<CardGroup cols={2}>
+  <Card title="Stock Valuation" icon="circle-dollar-to-slot">
+    Shows the current monetary value of your inventory, calculated as on-hand quantity multiplied by cost price (using weighted average cost). Filter by product, category, or warehouse to see valuation slices. Use this report for balance sheet preparation, insurance documentation, or period-end accounting.
+  </Card>
+  <Card title="Movement History" icon="arrows-up-down">
+    A chronological log of every stock change in your account over a date range you define. Each row shows the movement type (purchase receipt, sales shipment, adjustment, transfer), the quantity delta, the before and after quantities, and the user or API key responsible. Essential for investigating discrepancies or auditing stock flows.
+  </Card>
+  <Card title="Reorder Report" icon="triangle-exclamation">
+    Lists every product whose available quantity is at or below its reorder point, grouped by supplier for easy purchasing. Use this report during your weekly replenishment run to create purchase orders for everything that needs restocking in one session. Filter by warehouse to generate location-specific reorder lists.
+  </Card>
+  <Card title="Purchase Order Report" icon="truck">
+    Summarizes all purchase orders over a selected date range, including order value, expected vs. actual delivery dates, and receipt status. Use the supplier performance view to see on-time delivery rates, average lead times, and total spend by supplier — valuable data when renegotiating terms or evaluating new suppliers.
+  </Card>
+  <Card title="Sales Order Report" icon="bag-shopping">
+    Shows all sales orders and their fulfillment outcomes over a date range. Includes metrics like fulfillment rate (orders shipped on time vs. total orders), backorder rate, and order value by customer or product. Use this report to identify your fastest-moving SKUs and spot patterns in stockouts that are costing you sales.
+  </Card>
+</CardGroup>
+
+## Filter Reports and Set Date Ranges
+
+Every report includes a filter bar at the top of the page. Common filters across all reports include:
+
+| Filter | Description |
+|---|---|
+| **Date Range** | Set a start and end date. Use presets (Last 7 Days, Last 30 Days, This Month, This Quarter, Custom) or enter specific dates. |
+| **Warehouse** | Scope results to one or more warehouse locations. |
+| **Category** | Show only products belonging to selected categories. |
+| **Product / SKU** | Drill into a single product or a set of SKUs. |
+| **Supplier** | Available on PO Report — filter by one or more suppliers. |
+| **Status** | Available on PO and SO reports — filter by order status. |
+
+Apply multiple filters simultaneously. The report updates in real time as you change filter values.
+
+## Export Reports to CSV or PDF
+
+You can export any report result for use in spreadsheets, accounting software, or external presentations.
+
+<Steps>
+  ### Apply your filters
+
+  Open the report, set your date range, and apply any additional filters to scope the data exactly as you want it exported.
+
+  ### Click Export
+
+  Click the **Export** button in the top-right corner of the report. A dropdown offers two formats:
+
+  - **Export CSV** — a flat file with all rows and columns, ready for Excel, Google Sheets, or your accounting tool.
+  - **Export PDF** — a formatted, printable report with your company name and the applied filter summary shown at the top.
+
+  ### Download the file
+
+  The file generates and downloads automatically. For large exports (over 10,000 rows), Blinks Inventory emails the file to your account address when it's ready — usually within a few minutes.
+</Steps>
+
+<Note>
+  PDF exports include a report header showing the filters applied and the date the report was generated. This makes PDF exports suitable for audit submissions or management packs where context and provenance matter.
+</Note>
+
+## Schedule Automated Report Emails
+
+Instead of opening the dashboard every week to pull the same reports, schedule them to arrive in your inbox automatically.
+
+<Steps>
+  ### Open report scheduling
+
+  Open the report you want to schedule, apply the filters and date range you want to use, then click **Schedule** in the top-right corner.
+
+  ### Set the frequency
+
+  Choose how often the report should be sent:
+  - **Daily** — sent every morning at a time you specify.
+  - **Weekly** — sent on a chosen day of the week.
+  - **Monthly** — sent on the first day of each month.
+
+  ### Choose the format
+
+  Select **CSV** or **PDF** as the delivery format.
+
+  ### Add recipients
+
+  Enter one or more email addresses. You can include people outside your Blinks Inventory account — useful for sending the Reorder Report to a purchasing manager or the Valuation Report to your accountant.
+
+  ### Save the schedule
+
+  Click **Save Schedule**. The schedule appears under **Reports > Scheduled Reports**, where you can edit or delete it at any time.
+</Steps>
+
+<Tip>
+  Schedule the **Reorder Report** to arrive every Monday morning so your purchasing team starts each week with an up-to-date list of what needs ordering — without having to log in to find it. Pair it with the **Purchase Order Report** to give leadership a weekly view of open orders and supplier performance in the same email run.
+</Tip>

@@ -1,0 +1,97 @@
+---
+title: "Authenticate API Requests to Blinks Inventory"
+sidebarTitle: "Authentication"
+description: "Generate an API key from your Blinks Inventory dashboard and pass it as a Bearer token to authenticate every API request."
+---
+
+Every request to the Blinks Inventory API must be authenticated using an API key. Keys are generated directly from your dashboard, scoped to the level of access your integration requires, and passed as a Bearer token in the `Authorization` header. There are no sessions or cookies — each request is independently authenticated.
+
+## Generating an API Key
+
+Create a dedicated key for each integration or environment (e.g., one for your warehouse app, one for your e-commerce sync, one for local development). This makes it easy to rotate or revoke a single key without disrupting other services.
+
+<Steps>
+  <Step title="Open API Key Settings">
+    Log in to your Blinks Inventory dashboard and navigate to **Settings** in the left sidebar.
+  </Step>
+  <Step title="Go to the API Keys Section">
+    Under Settings, select **API Keys** to view all existing keys and their scopes.
+  </Step>
+  <Step title="Create a New Key">
+    Click **New API Key**. Enter a descriptive name for the key — for example, `Warehouse Sync (Production)` — so you can identify it later.
+  </Step>
+  <Step title="Choose a Scope">
+    Select the appropriate scope for this key's intended use. See the [Scopes](#scopes) section below for a full breakdown of each option.
+  </Step>
+  <Step title="Copy and Store the Key">
+    After creation, the full key is displayed **once**. Copy it immediately and store it in a secure secrets manager or environment variable. Blinks Inventory does not show the full key again after you leave this screen.
+  </Step>
+</Steps>
+
+<Warning>
+  Your API key grants access to your Blinks Inventory account data. Never hardcode a key in source code, commit it to a version control repository, or share it in a public forum. If a key is exposed, revoke it immediately from the dashboard and generate a replacement.
+</Warning>
+
+## Scopes
+
+Every API key is assigned a scope that defines the operations it is permitted to perform. Grant only the minimum scope required for each integration.
+
+<Note>
+  Scopes are set at key creation time and cannot be changed afterward. If you need a different scope for an existing integration, generate a new key with the correct scope and revoke the old one.
+</Note>
+
+| Scope   | Permissions                                                                                          |
+| ------- | ---------------------------------------------------------------------------------------------------- |
+| `read`  | Read-only access. Allows `GET` requests across all resources. Cannot create, update, or delete.      |
+| `write` | Read and write access. Allows `GET`, `POST`, `PUT`, and `PATCH` requests. Cannot delete resources or manage account settings. |
+| `admin` | Full access. Allows all operations including deletions, webhook configuration, and user management. Use only for trusted internal tooling. |
+
+## Making an Authenticated Request
+
+Pass your API key in the `Authorization` header as a Bearer token with every request. Replace `blinks_live_abc123xyz` with your actual key.
+
+```bash
+curl https://api.blinks.it/v1/products \
+  -H "Authorization: Bearer blinks_live_abc123xyz"
+```
+
+The header format is always:
+
+```
+Authorization: Bearer YOUR_API_KEY
+```
+
+There is no additional handshake, token exchange, or expiry to manage — the key itself is the credential.
+
+<Tip>
+  Use test keys (prefixed `blinks_test_`) during development so you don't risk modifying live inventory data. Test keys behave identically to live keys but operate against a sandboxed dataset.
+</Tip>
+
+## Keeping Keys Secure
+
+Follow these practices to protect your API keys:
+
+- **Use environment variables.** Store keys in environment variables (e.g., `BLINKS_API_KEY`) and reference them in code rather than hardcoding values.
+- **Use a secrets manager.** In production, use a dedicated secrets management service such as AWS Secrets Manager, HashiCorp Vault, or your cloud provider's equivalent.
+- **Restrict key scope.** Issue `read`-scoped keys to services that only need to query data, and reserve `write` or `admin` keys for services that must modify records.
+- **Rotate keys regularly.** Even if a key hasn't been compromised, rotate keys periodically as a security hygiene practice.
+- **Audit key usage.** Review the API key activity log in your dashboard to spot unexpected usage patterns.
+
+## Rotating and Revoking Keys
+
+To rotate a key, generate a new one with the same scope and name, update your integration to use the new key, then revoke the old key from the **Settings > API Keys** dashboard. Revocation is immediate — requests using a revoked key are rejected instantly.
+
+If you suspect a key has been compromised, revoke it immediately without waiting to rotate. Your data is protected as soon as the old key is invalidated.
+
+## Authentication Errors
+
+If your request is not authenticated correctly, the API returns one of the following HTTP error codes:
+
+| Status | Code            | Meaning                                                                                     |
+| ------ | --------------- | ------------------------------------------------------------------------------------------- |
+| `401`  | `unauthorized`  | The `Authorization` header is missing, malformed, or contains an invalid or revoked key.    |
+| `403`  | `forbidden`     | The key is valid, but its scope does not permit the requested operation (e.g., a `read` key attempting a `POST`). |
+
+A `401` means the API cannot identify you — check that the header is present and the key is correct. A `403` means the API recognizes you but you don't have permission — check the key's scope and upgrade if necessary.
+
+See the [Errors reference](/api-reference/errors) for the full error response format and troubleshooting guidance.

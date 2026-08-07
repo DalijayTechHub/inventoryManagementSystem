@@ -1,0 +1,262 @@
+---
+title: "Troubleshoot Common Blinks Inventory Issues"
+sidebarTitle: "Troubleshooting"
+description: "Fix common problems in Blinks Inventory, including sync errors, API authentication failures, incorrect stock levels, and import issues."
+---
+
+Most issues in Blinks Inventory have a straightforward fix once you know where to look. This page covers the five problems our support team encounters most frequently, with step-by-step resolution instructions for each. If you work through the steps here and the problem persists, contact [support@blinksinventory.com](mailto:support@blinksinventory.com) with the details noted in the relevant section below.
+
+---
+
+## API authentication errors
+
+<AccordionGroup>
+  <Accordion title="401 Unauthorized or 403 Forbidden responses">
+    A `401 Unauthorized` response means the API could not identify who is making
+    the request. A `403 Forbidden` response means Blinks identified the caller
+    but the key does not have permission to perform that action. Both errors
+    originate from the same small set of causes.
+
+    **Step 1 — Verify the key is copied correctly.**
+
+    Open **Settings > API Keys** and confirm the key you are using is listed and
+    shows a status of **Active**. Copy the key again directly from the Blinks
+    dashboard rather than from a notes file or environment variable cache, then
+    test the request with the freshly copied value.
+
+    <Warning>
+      Blinks only shows the full API key once, immediately after generation. If
+      you cannot verify the key matches what you have stored, revoke it and
+      generate a new one — there is no security risk in doing so, and it is the
+      fastest way to rule out a key mismatch.
+    </Warning>
+
+    **Step 2 — Check that the key has not been revoked.**
+
+    In **Settings > API Keys**, look at the key's status column. If it shows
+    **Revoked**, that key can no longer be used. Create a new key, update your
+    integration with the new value, and test again.
+
+    **Step 3 — Confirm the Authorization header format.**
+
+    The Blinks API requires a `Bearer` token in the `Authorization` header.
+    The correct format is:
+
+    ```http
+    Authorization: Bearer YOUR_API_KEY
+    ```
+
+    Common mistakes include:
+    - Using `Token` or `Basic` instead of `Bearer`.
+    - Including extra whitespace or a line break after the key.
+    - Placing the key in a query parameter (`?api_key=...`) rather than the
+      header — Blinks does not support query-parameter authentication.
+
+    **Step 4 — Check key permissions (403 only).**
+
+    If you receive a `403` but not a `401`, the key is valid but lacks the
+    required scope. Open **Settings > API Keys**, click the key name, and review
+    its assigned scopes. If the scope you need is not listed, either update the
+    key's scopes or generate a new key with the correct permissions.
+
+    <Note>
+      Changes to key scopes take effect immediately — you do not need to
+      regenerate the key after updating its scopes.
+    </Note>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Stock levels not updating after an order
+
+<AccordionGroup>
+  <Accordion title="On-hand quantities unchanged after an order is created">
+    Blinks only adjusts stock when an order moves to **Confirmed** status.
+    Orders sitting in **Draft** do not reserve or decrement stock, by design —
+    drafts exist so you can prepare an order without committing inventory.
+
+    **Step 1 — Check the order status.**
+
+    Open the Sales Order or Purchase Order in question. Look at the status badge
+    at the top of the order. If it reads **Draft**, confirm the order by
+    clicking **Confirm Order**. Stock will be reserved (for sales orders) or
+    incremented (for purchase order receipts) immediately.
+
+    **Step 2 — Verify the correct warehouse is selected.**
+
+    Blinks manages stock per warehouse. If the order is confirmed but the
+    warehouse shown on the order is different from the one you are checking,
+    you will not see the change in the other warehouse's stock count. Open the
+    order and check the **Warehouse** field, then look at that specific
+    warehouse's stock level for the product.
+
+    **Step 3 — Review the movement history.**
+
+    Navigate to the product page and click the **Movements** tab. This log
+    records every stock adjustment ever made for that product, including the
+    source (order number, manual adjustment, or import). If the expected
+    movement is missing, the order was not confirmed at the time you expected.
+    If the movement is present but for the wrong quantity, check whether the
+    order quantity was changed after confirmation.
+
+    <Note>
+      If you are using the Shopify integration and stock is not updating after a
+      Shopify order, see the Shopify sync troubleshooting section below — the
+      cause is often a webhook delivery failure rather than an order status
+      issue.
+    </Note>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## CSV import failing
+
+<AccordionGroup>
+  <Accordion title="Errors during product or stock CSV import">
+    CSV imports fail at the validation stage — Blinks checks every row before
+    committing any of them. A single malformed row will not prevent other rows
+    from importing, but Blinks will report each problem row individually.
+
+    **Required columns and their format:**
+
+    | Column | Required | Format |
+    |---|---|---|
+    | `sku` | Yes | Text, max 100 chars, unique per workspace |
+    | `name` | No | Text, max 255 chars |
+    | `cost` | No | Decimal number (e.g., `12.50`) — no currency symbols |
+    | `price` | No | Decimal number (e.g., `24.99`) — no currency symbols |
+    | `barcode` | No | Text — must be unique if provided |
+    | `quantity` | No (stock import only) | Integer |
+
+    <Warning>
+      The `sku` column is the only truly required field, but any column you
+      include must be correctly formatted for every row. A column with a header
+      but blank values is treated as "not provided" and is safe to include.
+    </Warning>
+
+    **Common errors and their fixes:**
+
+    - **Missing SKU** — The `sku` column is empty for one or more rows. Every
+      product row must have a SKU. Add SKUs to the blank rows and re-upload.
+    - **Duplicate SKU** — Two or more rows share the same SKU value, or the SKU
+      already exists in Blinks for a different product. If you are updating
+      existing products, use the **Update** import mode (not **Create**) to
+      overwrite existing records by SKU.
+    - **Invalid price format** — Price and cost fields must be plain decimal
+      numbers. Remove currency symbols (`$`, `£`, `€`), thousand separators
+      (commas), and any units. Use `12.50`, not `$12.50` or `12,50`.
+    - **Unknown column header** — Blinks ignores unrecognised column headers by
+      default, but if you have enabled **strict mode** in import settings, an
+      unknown header causes the import to fail. Use the downloaded CSV template
+      to ensure header names match exactly.
+
+    **Downloading the error report:**
+
+    After a failed import, Blinks displays an **Import results** screen showing
+    how many rows succeeded and how many failed. Click **Download error report**
+    to get a CSV containing only the failed rows, with an additional
+    `error_message` column explaining each failure. Fix the errors in that file
+    and re-upload it — you do not need to re-import the rows that already
+    succeeded.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Shopify sync not working
+
+<AccordionGroup>
+  <Accordion title="Stock changes or orders are not syncing with Shopify">
+    Shopify sync relies on webhooks (Shopify notifying Blinks of new orders) and
+    the Blinks sync push (Blinks updating stock levels in Shopify). Both
+    directions can fail independently.
+
+    **Step 1 — Reconnect the integration.**
+
+    OAuth tokens can expire or be revoked from the Shopify side (for example, if
+    someone uninstalled and reinstalled the app, or if the Shopify account
+    password was reset). Go to **Settings > Integrations > Shopify**, click
+    **⋯**, and select **Reconnect**. This triggers a fresh OAuth handshake and
+    re-registers all webhooks.
+
+    **Step 2 — Check SKU mapping.**
+
+    Blinks only syncs products that have a confirmed SKU match between the two
+    systems. Go to **Settings > Integrations > Shopify > SKU Mapping** and
+    check the **Unmatched** tab. Any products listed there will not sync until
+    the mismatch is resolved. See the [E-Commerce integration guide](/integrations/ecommerce#handling-sku-mismatches)
+    for detailed resolution steps.
+
+    **Step 3 — Review the sync log for error messages.**
+
+    Navigate to **Settings > Integrations > Shopify > View sync log**. Filter
+    by **Status: Error** to see only failed events. Click any row to see the
+    full error message. Common errors include:
+
+    - `Shopify rate limit exceeded` — Blinks is sending more updates than
+      Shopify's API allows. This resolves automatically; Blinks queues and
+      retries with back-off.
+    - `Product not found in Shopify` — The Shopify product was deleted after the
+      SKU mapping was created. Re-map or remove the link.
+    - `Invalid access token` — The OAuth token has been revoked. Reconnect the
+      integration (Step 1 above).
+
+    <Note>
+      Blinks retains 30 days of sync log history. If you need logs older than
+      30 days for audit purposes, export them from the sync log screen before
+      they expire.
+    </Note>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Low-stock alerts not sending
+
+<AccordionGroup>
+  <Accordion title="Not receiving low-stock email or in-app notifications">
+    Low-stock alerts depend on three things all being configured correctly: a
+    reorder point on the product, notification settings that include low-stock
+    events, and a verified email address on your account. Check each in turn.
+
+    **Step 1 — Verify the reorder point is set on the product.**
+
+    Open the product page and click the **Inventory** tab. Look for the
+    **Reorder point** field. If it is blank or set to `0`, Blinks has no
+    threshold to trigger against. Set a reorder point value — for example, `10`
+    — and save the product. Blinks will send an alert the next time stock falls
+    to or below that value.
+
+    <Warning>
+      Setting a reorder point does not trigger an immediate alert. The alert
+      fires the next time a stock movement causes the quantity to cross the
+      threshold. If stock is already below the reorder point, manually trigger
+      an alert by going to the product page and clicking **Send low-stock
+      alert** under the Inventory tab.
+    </Warning>
+
+    **Step 2 — Check notification settings.**
+
+    Go to **Settings > Notifications**. Confirm that **Low stock alerts** is
+    toggled on. You can choose to receive alerts by email, in-app notification,
+    or both. If you have set up notification rules that filter by product
+    category or warehouse, make sure the product and warehouse in question are
+    not excluded by a filter.
+
+    **Step 3 — Confirm your email address is verified.**
+
+    Go to **Settings > Profile**. If your email address shows an **Unverified**
+    badge, email notifications cannot be delivered. Click **Resend verification
+    email** and confirm your address. If you do not receive the verification
+    email within a few minutes, check your spam folder or add
+    `notifications@blinksinventory.com` to your email allowlist.
+
+    <Note>
+      If your company uses email filtering or a security gateway, ask your IT
+      administrator to allowlist the domain `blinksinventory.com` to ensure
+      notification emails are not silently dropped before reaching your inbox.
+    </Note>
+  </Accordion>
+</AccordionGroup>

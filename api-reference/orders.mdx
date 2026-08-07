@@ -1,0 +1,463 @@
+---
+title: "Orders API — Manage Purchase and Sales Orders"
+sidebarTitle: "Orders"
+description: "REST API endpoints for creating and managing purchase orders and sales orders in Blinks Inventory."
+---
+
+The Orders API covers both sides of your inventory flow: purchase orders that bring stock in from suppliers, and sales orders that send stock out to customers. Use the Purchase Orders endpoints to raise POs, track their status, and receive stock against them when goods arrive. Use the Sales Orders endpoints to create outbound orders, check fulfilment status, and mark shipments as dispatched.
+
+<Tabs>
+  <Tab title="Purchase Orders">
+
+## List purchase orders
+
+Retrieve a paginated list of purchase orders. Filter by status or supplier to narrow the results.
+
+```bash
+curl -X GET "https://api.blinks.it/v1/purchase-orders?status=pending&supplier_id=sup_01A2B3C4D5&page=1&per_page=25" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Query parameters
+
+<ParamField query="status" type="string">
+  Filter by order status. Accepted values: `draft`, `pending`, `partial`, `received`, `cancelled`.
+</ParamField>
+
+<ParamField query="supplier_id" type="string">
+  Filter by supplier ID to show only POs from a specific supplier.
+</ParamField>
+
+<ParamField query="page" type="integer" default="1">
+  The page number to return.
+</ParamField>
+
+<ParamField query="per_page" type="integer" default="20">
+  Number of orders per page. Maximum is 100.
+</ParamField>
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "po_01P2Q3R4S5T6U7V8W9X0Y1Z2",
+      "supplier_id": "sup_01A2B3C4D5E6F7G8H9I0J1K2",
+      "supplier_name": "TechSource Global",
+      "status": "pending",
+      "expected_date": "2024-06-15",
+      "total_cost": 2250.00,
+      "created_at": "2024-05-28T09:15:00Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "per_page": 25,
+    "total": 1
+  }
+}
+```
+
+---
+
+## Create a purchase order
+
+Raise a new purchase order against a supplier. Include one or more line items specifying the SKU and quantity you want to order.
+
+```bash
+curl -X POST "https://api.blinks.it/v1/purchase-orders" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "supplier_id": "sup_01A2B3C4D5E6F7G8H9I0J1K2",
+    "expected_date": "2024-06-15",
+    "line_items": [
+      { "sku": "WKB-PRO-001", "quantity": 100 },
+      { "sku": "USB-HUB-7P",  "quantity": 150 }
+    ]
+  }'
+```
+
+### Request body
+
+<ParamField body="supplier_id" type="string" required>
+  The ID of the supplier you are ordering from.
+</ParamField>
+
+<ParamField body="line_items" type="array" required>
+  An array of line item objects. Each item must include a `sku` (string, required) and `quantity` (positive integer, required).
+</ParamField>
+
+<ParamField body="expected_date" type="string">
+  The expected delivery date in `YYYY-MM-DD` format.
+</ParamField>
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "po_02Q3R4S5T6U7V8W9X0Y1Z2A3",
+    "supplier_id": "sup_01A2B3C4D5E6F7G8H9I0J1K2",
+    "supplier_name": "TechSource Global",
+    "status": "pending",
+    "expected_date": "2024-06-15",
+    "line_items": [
+      {
+        "id": "li_01A2B3C4D5",
+        "sku": "WKB-PRO-001",
+        "quantity": 100,
+        "unit_cost": 22.50,
+        "line_total": 2250.00
+      },
+      {
+        "id": "li_02B3C4D5E6",
+        "sku": "USB-HUB-7P",
+        "quantity": 150,
+        "unit_cost": 15.00,
+        "line_total": 2250.00
+      }
+    ],
+    "total_cost": 4500.00,
+    "created_at": "2024-05-28T10:00:00Z"
+  }
+}
+```
+
+---
+
+## Get a purchase order
+
+Retrieve the full details of a single purchase order, including all line items and their current received quantities.
+
+```bash
+curl -X GET "https://api.blinks.it/v1/purchase-orders/po_02Q3R4S5T6U7V8W9X0Y1Z2A3" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The unique ID of the purchase order to retrieve.
+</ParamField>
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "po_02Q3R4S5T6U7V8W9X0Y1Z2A3",
+    "supplier_id": "sup_01A2B3C4D5E6F7G8H9I0J1K2",
+    "supplier_name": "TechSource Global",
+    "status": "partial",
+    "expected_date": "2024-06-15",
+    "line_items": [
+      {
+        "id": "li_01A2B3C4D5",
+        "sku": "WKB-PRO-001",
+        "quantity": 100,
+        "received_quantity": 60,
+        "unit_cost": 22.50,
+        "line_total": 2250.00
+      },
+      {
+        "id": "li_02B3C4D5E6",
+        "sku": "USB-HUB-7P",
+        "quantity": 150,
+        "received_quantity": 150,
+        "unit_cost": 15.00,
+        "line_total": 2250.00
+      }
+    ],
+    "total_cost": 4500.00,
+    "created_at": "2024-05-28T10:00:00Z"
+  }
+}
+```
+
+---
+
+## Receive stock against a purchase order
+
+Record the physical receipt of goods against an open or partially received purchase order. Blinks Inventory will increase the stock levels in the destination warehouse and update the PO's `received_quantity` for each line item.
+
+<Note>
+  If the quantities you receive fully satisfy all line items, the PO status is automatically updated to `received`. If only some lines are fulfilled, the status moves to `partial`.
+</Note>
+
+```bash
+curl -X POST "https://api.blinks.it/v1/purchase-orders/po_02Q3R4S5T6U7V8W9X0Y1Z2A3/receive" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "warehouse_id": "wh_01A2B3C4D5E6F7G8H9I0J1K2",
+    "line_items": [
+      { "sku": "WKB-PRO-001", "received_quantity": 40 }
+    ]
+  }'
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The unique ID of the purchase order to receive against.
+</ParamField>
+
+### Request body
+
+<ParamField body="warehouse_id" type="string" required>
+  The ID of the warehouse where the stock is being received.
+</ParamField>
+
+<ParamField body="line_items" type="array" required>
+  An array of objects, each with a `sku` (string) and `received_quantity` (positive integer) representing the units physically counted on receipt.
+</ParamField>
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "po_02Q3R4S5T6U7V8W9X0Y1Z2A3",
+    "status": "received",
+    "line_items": [
+      {
+        "sku": "WKB-PRO-001",
+        "quantity": 100,
+        "received_quantity": 100
+      },
+      {
+        "sku": "USB-HUB-7P",
+        "quantity": 150,
+        "received_quantity": 150
+      }
+    ]
+  }
+}
+```
+
+  </Tab>
+  <Tab title="Sales Orders">
+
+## List sales orders
+
+Retrieve a paginated list of sales orders. Filter by status to track orders at each stage of fulfilment.
+
+```bash
+curl -X GET "https://api.blinks.it/v1/sales-orders?status=open&page=1&per_page=25" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Query parameters
+
+<ParamField query="status" type="string">
+  Filter by order status. Accepted values: `open`, `allocated`, `shipped`, `cancelled`.
+</ParamField>
+
+<ParamField query="page" type="integer" default="1">
+  The page number to return.
+</ParamField>
+
+<ParamField query="per_page" type="integer" default="20">
+  Number of orders per page. Maximum is 100.
+</ParamField>
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "so_01S2T3U4V5W6X7Y8Z9A0B1C2",
+      "customer": {
+        "name": "Acme Corp",
+        "email": "orders@acme.com"
+      },
+      "warehouse_id": "wh_01A2B3C4D5E6F7G8H9I0J1K2",
+      "status": "open",
+      "total_value": 449.90,
+      "created_at": "2024-06-01T11:00:00Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "per_page": 25,
+    "total": 1
+  }
+}
+```
+
+---
+
+## Create a sales order
+
+Create a new outbound sales order. Blinks Inventory will reserve the specified quantities in the given warehouse as soon as the order is created.
+
+```bash
+curl -X POST "https://api.blinks.it/v1/sales-orders" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer": {
+      "name": "Acme Corp",
+      "email": "orders@acme.com",
+      "shipping_address": {
+        "line1": "742 Evergreen Terrace",
+        "city": "Springfield",
+        "state": "IL",
+        "postal_code": "62704",
+        "country": "US"
+      }
+    },
+    "warehouse_id": "wh_01A2B3C4D5E6F7G8H9I0J1K2",
+    "line_items": [
+      { "sku": "WKB-PRO-001", "quantity": 10 }
+    ]
+  }'
+```
+
+### Request body
+
+<ParamField body="customer" type="object" required>
+  Customer details. Accepts `name` (required), `email`, and `shipping_address` (object with `line1`, `city`, `state`, `postal_code`, `country`).
+</ParamField>
+
+<ParamField body="warehouse_id" type="string" required>
+  The ID of the warehouse from which the order will be fulfilled.
+</ParamField>
+
+<ParamField body="line_items" type="array" required>
+  An array of line item objects. Each item must include a `sku` (string, required) and `quantity` (positive integer, required).
+</ParamField>
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "so_02T3U4V5W6X7Y8Z9A0B1C2D3",
+    "customer": {
+      "name": "Acme Corp",
+      "email": "orders@acme.com",
+      "shipping_address": {
+        "line1": "742 Evergreen Terrace",
+        "city": "Springfield",
+        "state": "IL",
+        "postal_code": "62704",
+        "country": "US"
+      }
+    },
+    "warehouse_id": "wh_01A2B3C4D5E6F7G8H9I0J1K2",
+    "status": "allocated",
+    "line_items": [
+      {
+        "id": "li_03C4D5E6F7",
+        "sku": "WKB-PRO-001",
+        "quantity": 10,
+        "unit_price": 49.99,
+        "line_total": 499.90
+      }
+    ],
+    "total_value": 499.90,
+    "created_at": "2024-06-02T08:30:00Z"
+  }
+}
+```
+
+---
+
+## Get a sales order
+
+Retrieve the full details of a single sales order, including line items and current status.
+
+```bash
+curl -X GET "https://api.blinks.it/v1/sales-orders/so_02T3U4V5W6X7Y8Z9A0B1C2D3" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The unique ID of the sales order to retrieve.
+</ParamField>
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "so_02T3U4V5W6X7Y8Z9A0B1C2D3",
+    "customer": {
+      "name": "Acme Corp",
+      "email": "orders@acme.com"
+    },
+    "warehouse_id": "wh_01A2B3C4D5E6F7G8H9I0J1K2",
+    "status": "allocated",
+    "line_items": [
+      {
+        "id": "li_03C4D5E6F7",
+        "sku": "WKB-PRO-001",
+        "quantity": 10,
+        "unit_price": 49.99,
+        "line_total": 499.90
+      }
+    ],
+    "total_value": 499.90,
+    "created_at": "2024-06-02T08:30:00Z"
+  }
+}
+```
+
+---
+
+## Mark a sales order as shipped
+
+Record that a sales order has been dispatched. Blinks Inventory will release the reserved stock and reduce the warehouse's `available_quantity` accordingly.
+
+<Note>
+  Once a sales order is marked as shipped, its status cannot be reversed. Ensure all items have been packed and dispatched before calling this endpoint.
+</Note>
+
+```bash
+curl -X POST "https://api.blinks.it/v1/sales-orders/so_02T3U4V5W6X7Y8Z9A0B1C2D3/ship" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tracking_number": "1Z999AA10123456784",
+    "carrier": "UPS"
+  }'
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The unique ID of the sales order to mark as shipped.
+</ParamField>
+
+### Request body
+
+<ParamField body="tracking_number" type="string">
+  The carrier tracking number for the shipment.
+</ParamField>
+
+<ParamField body="carrier" type="string">
+  The name of the shipping carrier (e.g. `UPS`, `FedEx`, `USPS`).
+</ParamField>
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "so_02T3U4V5W6X7Y8Z9A0B1C2D3",
+    "status": "shipped",
+    "tracking_number": "1Z999AA10123456784",
+    "carrier": "UPS",
+    "shipped_at": "2024-06-03T14:00:00Z"
+  }
+}
+```
+
+  </Tab>
+</Tabs>

@@ -1,0 +1,103 @@
+---
+title: "Set Up Your Blinks Inventory Account and Organization"
+sidebarTitle: "Account Setup"
+description: "Configure your Blinks Inventory organization, invite team members, and set user roles before you start managing stock."
+---
+
+Before you start adding products and tracking stock, take a few minutes to configure your organization correctly. A well-structured account — with the right team members, accurate regional settings, and a secure API key — saves you from painful corrections later and ensures that every user has exactly the access they need. This page walks you through the complete setup flow from account creation to your first API key.
+
+<Steps>
+
+  ### Create Your Account
+
+  Go to [app.blinks.it](https://app.blinks.it) and click **Get Started Free**. Enter your work email address and a secure password, then click **Create Account**.
+
+  Blinks sends a verification email to the address you provided. Click the confirmation link in that email to activate your account. The link expires after 24 hours — if it expires, return to the sign-in page and request a new verification email.
+
+  <Note>
+    If your company already has a Blinks organization, do not create a new one. Ask your organization's Admin to send you an invitation so you join the existing workspace.
+  </Note>
+
+  ### Set Up Your Organization
+
+  When you first sign in, Blinks prompts you to create an organization. This is the top-level workspace that contains all your warehouses, products, orders, and settings.
+
+  Fill in the following fields:
+
+  - **Organization name** — the legal or trading name of your business (for example, `Acme Wholesale Ltd`). This appears on purchase orders and reports.
+  - **Industry** — select the option that best describes your business (retail, wholesale, e-commerce, logistics, other).
+  - **Company size** — used only to tailor onboarding suggestions; does not affect features or pricing.
+
+  Click **Create Organization** to continue.
+
+  ### Configure Timezone and Currency
+
+  Accurate timestamps and financial figures depend on your regional settings being correct from the start. Go to **Settings > Organization** and set:
+
+  - **Timezone** — all order timestamps, movement logs, and scheduled alerts use this timezone. Choose the timezone where your primary operations are based.
+  - **Default currency** — used on purchase orders, sales orders, and inventory valuation reports. If you operate in multiple currencies, you can override the currency on individual orders, but this setting controls the default.
+  - **Date format** — choose between DD/MM/YYYY, MM/DD/YYYY, or YYYY-MM-DD depending on your regional convention.
+
+  Click **Save Settings**.
+
+  <Warning>
+    Changing your default currency after you have created orders does not retroactively convert existing records. Set your currency correctly before you begin processing orders.
+  </Warning>
+
+  ### Invite Team Members
+
+  Go to **Settings > Team Members** and click **Invite Member**. Enter the person's work email address, select their role (see the role reference below), and click **Send Invitation**.
+
+  The invited user receives an email with a link to join your organization. They will be prompted to create a password if they do not already have a Blinks account. Pending invitations appear in the **Team Members** list with a `Pending` badge until accepted.
+
+  You can invite as many team members as your plan allows. To resend or revoke an invitation, find the pending member in the list and use the **…** actions menu.
+
+  ### Assign User Roles
+
+  Blinks Inventory uses role-based access control to ensure team members can only see and do what their job requires. Assign roles when inviting team members, or change them at any time from **Settings > Team Members**.
+
+  | Role | What They Can Do |
+  |---|---|
+  | **Admin** | Full access to all settings, team management, billing, API keys, and every feature in the product. There must always be at least one Admin in an organization. |
+  | **Manager** | Create and manage products, warehouses, purchase orders, and sales orders. View all reports. Cannot change organization settings, manage billing, or manage other users. |
+  | **Warehouse Staff** | Receive stock against purchase orders, process shipments, create adjustments and transfers, and view stock levels. Cannot create or delete products, warehouses, or orders. |
+  | **Viewer** | Read-only access to all inventory data, products, orders, and reports. Cannot create, edit, or delete any record. Ideal for finance, auditors, or external stakeholders. |
+
+  <Tip>
+    Follow the principle of least privilege: assign Warehouse Staff to your receiving team and reserve Manager or Admin access for the people who genuinely need to configure the system.
+  </Tip>
+
+  ### Generate Your First API Key
+
+  If you plan to connect Blinks to an external system — an e-commerce platform, ERP, or custom application — you will need an API key.
+
+  Go to **Settings > API Keys** and click **New API Key**. Give the key a descriptive name that identifies its purpose (for example, `Shopify Sync` or `ERP Integration`). Optionally set an expiry date if your security policy requires key rotation.
+
+  Click **Generate**. Blinks displays the key once — copy it immediately and store it in a secure location such as a secrets manager or an environment variable. **You cannot retrieve the key again after closing this dialog.**
+
+  To revoke a key at any time, return to **Settings > API Keys**, find the key in the list, and click **Revoke**. Revoked keys stop working immediately.
+
+  <Warning>
+    Never paste an API key into source code, commit it to a version control repository, or share it in a chat message. Treat your API key like a password.
+  </Warning>
+
+</Steps>
+
+## Next Steps
+
+With your organization configured and your team invited, you are ready to start building your inventory catalog.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Add your first warehouse, create a product and SKU, and make your first API call.
+  </Card>
+  <Card title="Warehouses & Locations" icon="warehouse" href="/concepts/warehouses-and-locations">
+    Model your storage facilities with zones and bin locations for precise stock tracking.
+  </Card>
+  <Card title="Products & Variants" icon="tag" href="/concepts/products-and-variants">
+    Understand how to structure your product catalog with variants and SKUs.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference">
+    Use your new API key to start querying and updating inventory programmatically.
+  </Card>
+</CardGroup>

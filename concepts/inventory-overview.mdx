@@ -1,0 +1,78 @@
+---
+title: "How Inventory Works in Blinks: A Complete Overview"
+sidebarTitle: "Inventory Overview"
+description: "Understand the core inventory model in Blinks Inventory — how stock levels, locations, movements, and orders interact."
+---
+
+Inventory management sounds simple — count what you have, sell it, restock when you run low — but in practice it involves a constantly changing web of quantities, locations, orders, and movements that all need to stay in sync. Blinks Inventory is built around a precise, event-driven model that makes this complexity manageable: every change to stock is recorded as a movement, quantities are broken down into distinct states, and every record traces back to a source document like a purchase order or shipment. Understanding this model gives you the foundation to use every feature of the platform with confidence.
+
+## The Inventory Model
+
+Blinks organizes inventory from the top down:
+
+**Products** are the top-level items in your catalog — for example, "Running Shoe" or "Olive Oil 500ml". A product groups together all the variations of a single item you sell.
+
+**Variants** are specific versions of a product — for example, "Running Shoe / Size 10 / Black" or "Olive Oil 500ml / Organic". Each variant has its own SKU.
+
+**SKUs (Stock Keeping Units)** are the trackable units of inventory. When Blinks records stock, it records it at the SKU level. Every SKU has its own quantity counters, reorder settings, and movement history.
+
+**Stock at a location** is the quantity of a specific SKU held at a specific warehouse or bin. The same SKU can have different quantities at different locations, and Blinks tracks each separately.
+
+<Info>
+  The total available quantity of a SKU across your organization is the sum of its available quantities at every location. When you view a product in the dashboard, you see this aggregate figure by default, but you can always drill down to see the per-location breakdown.
+</Info>
+
+## Available, Reserved, and On-Order Quantities
+
+Every SKU at every location has three distinct quantity fields that together describe the full picture of your stock:
+
+| Quantity Type | What It Means |
+|---|---|
+| **Available** | Units physically present at the location and not yet committed to any order. This is the quantity you can freely sell or allocate. |
+| **Reserved** | Units physically present but already allocated to an open sales order. Reserved stock is not available for new orders until the order is cancelled or fulfilled. |
+| **On Order** | Units you have ordered from a supplier (on an open purchase order) but not yet received. These are incoming units that will become available once received. |
+
+The **total stock on hand** at a location is `available + reserved`. The **total expected stock** is `available + reserved + on_order`.
+
+<Note>
+  Blinks never lets available quantity go below zero in normal operation. If you attempt to allocate more units than are available, the order is flagged and Blinks prompts you to review before proceeding.
+</Note>
+
+## How Stock Changes
+
+Stock levels in Blinks never change silently. Every change is the result of a **stock movement** — a recorded event with a type, a quantity, a date, a reference, and the user who triggered it. There are four types of movements:
+
+- **Receipt** — stock arrives from a supplier, increasing available quantity at the receiving location. Typically linked to a purchase order.
+- **Shipment** — stock leaves for a customer, decreasing reserved quantity (which was previously allocated from available). Linked to a sales order.
+- **Adjustment** — a manual correction to account for damage, shrinkage, theft, or a physical count discrepancy. Can increase or decrease available quantity.
+- **Transfer** — stock moves from one warehouse or bin location to another. Decreases quantity at the source and increases it at the destination.
+
+You can view the full movement history for any SKU, at any location, from the product detail page or from the **Movements** section in the sidebar. See [Stock Movements](/concepts/stock-movements) for a complete reference.
+
+## The Relationship Between Orders and Inventory
+
+Orders and inventory are tightly linked in Blinks. When you create a **sales order**, Blinks moves the ordered quantity from `available` to `reserved` — the stock is still physically on the shelf, but it is committed to that order. When you process the shipment, the reserved quantity is reduced and a Shipment movement is recorded.
+
+When you create a **purchase order**, Blinks adds the ordered quantity to `on_order`. When the goods arrive and you record a receipt against the purchase order, the `on_order` quantity decreases and `available` increases by the received amount.
+
+This tight coupling means your available quantity is always accurate — you cannot accidentally sell stock that is already committed, and your on-order figures reflect exactly what is inbound.
+
+<Info>
+  Partial receipts and partial shipments are fully supported. If a supplier delivers 40 of 50 ordered units, Blinks records a receipt for 40, keeps 10 units on-order, and leaves the purchase order open until the remainder arrives or you manually close it.
+</Info>
+
+## The Inventory Lifecycle
+
+A unit of stock moves through a predictable lifecycle from the moment it is ordered to the moment it ships to a customer:
+
+1. **Purchase order created** — the SKU's `on_order` quantity increases by the ordered amount.
+2. **Goods received** — a Receipt movement is recorded; `on_order` decreases and `available` increases.
+3. **Sales order created** — a portion of `available` is moved to `reserved` when the order is confirmed.
+4. **Order shipped** — a Shipment movement is recorded; `reserved` decreases and the stock leaves the warehouse.
+5. **Reorder triggered** — if `available` falls to or below the reorder point, Blinks generates a low-stock alert so you can create a new purchase order and restart the cycle.
+
+At any point in this lifecycle, you can also record an **Adjustment** to correct the physical count (for example, after a cycle count reveals a discrepancy) or a **Transfer** to move stock to a different location to fulfil demand.
+
+<Note>
+  Every step in this lifecycle creates a dated, user-attributed movement record. This means you have a complete audit trail — you can always answer the question "who changed this stock level, when, and why?"
+</Note>

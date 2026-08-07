@@ -1,0 +1,174 @@
+---
+title: "Track and Monitor Stock Levels Across Warehouses"
+sidebarTitle: "Track Stock"
+description: "Use Blinks Inventory's dashboard and API to monitor real-time stock levels, set reorder points, and receive low-stock alerts."
+---
+
+Knowing exactly how much stock you have — and where it is — is the foundation of good inventory management. Blinks Inventory updates stock levels in real time as purchase orders are received, sales orders are fulfilled, and manual adjustments are made, so the numbers you see in the dashboard always reflect your current position. This guide walks you through navigating the Inventory dashboard, understanding stock statuses, configuring alerts, and querying stock levels via the API.
+
+## View the Inventory Dashboard
+
+Navigate to **Inventory** in the left sidebar to open the stock overview. The dashboard presents two default views:
+
+- **By Product** — shows each SKU in your catalog with aggregated quantities across all warehouses.
+- **By Warehouse** — shows each warehouse with a breakdown of every SKU stored there.
+
+Toggle between views using the tabs at the top of the table. Click any row to drill into that product's or warehouse's full stock detail, including a timeline of recent movements.
+
+## Filter Your Stock View
+
+Use the filter bar above the inventory table to narrow down what you're looking at:
+
+| Filter | What it does |
+|---|---|
+| **Warehouse** | Scopes the table to one or more specific warehouse locations. |
+| **Category** | Shows only products belonging to a chosen category. |
+| **Status** | Filters by stock status (see below). |
+| **Search** | Matches against product name, SKU, or barcode. |
+
+Combine multiple filters to answer specific questions — for example, filter by *Warehouse: East Coast DC* and *Status: Low Stock* to see everything that needs reordering at that location.
+
+## Understand Stock Statuses
+
+Every product–warehouse combination carries one of four statuses, calculated automatically from your on-hand quantities and reorder points:
+
+| Status | Meaning |
+|---|---|
+| **In Stock** | Available quantity is above the product's reorder point. |
+| **Low Stock** | Available quantity has fallen to or below the reorder point. |
+| **Out of Stock** | Available quantity is zero — no units can be allocated to new orders. |
+| **On Order** | Available quantity is zero or low, but an open purchase order exists for this SKU. |
+
+<Note>
+  The **On Order** status does not add to your available quantity. Stock is only counted as available once a purchase order is marked as **Received** and the goods are physically booked in.
+</Note>
+
+## Set a Reorder Point
+
+A reorder point tells Blinks Inventory the minimum quantity you want on hand before a replenishment order is triggered. When stock falls to this level, the status changes to *Low Stock* and any configured alerts fire.
+
+<Steps>
+  ### Open the product record
+
+  Go to **Products**, find the item you want to configure, and click its name to open the product detail page.
+
+  ### Edit stock settings
+
+  Click **Edit** in the top-right corner, then scroll to the **Stock Settings** section.
+
+  ### Enter the reorder point
+
+  Type the desired minimum quantity in the **Reorder Point** field. A good rule of thumb is to set this at your average sales velocity multiplied by your supplier's lead time, plus a safety buffer.
+
+  ### Save your changes
+
+  Click **Save Product**. The new threshold takes effect immediately — if current stock is already at or below it, the status updates to *Low Stock* right away.
+</Steps>
+
+<Tip>
+  Use the **Reorder Report** under **Reports** to see all products currently at or below their reorder point in one view. This makes it easy to batch-create purchase orders during a weekly replenishment run.
+</Tip>
+
+## Configure Low-Stock Email Alerts
+
+Blinks Inventory can send automatic email notifications whenever a product's status changes to *Low Stock* or *Out of Stock*.
+
+<Steps>
+  ### Open notification settings
+
+  Click the gear icon in the bottom-left corner of the dashboard to open **Settings**, then select **Notifications** from the sidebar.
+
+  ### Enable low-stock alerts
+
+  Toggle **Low Stock Alerts** to the on position. The configuration options expand.
+
+  ### Choose your threshold
+
+  Select when you want to be notified:
+
+  - **Low Stock only** — notifies when stock hits the reorder point.
+  - **Out of Stock only** — notifies only when stock reaches zero.
+  - **Both** — notifies at both thresholds.
+
+  ### Add recipient email addresses
+
+  Enter one or more email addresses in the **Alert Recipients** field, separated by commas. You can add team members, a shared inbox, or an external webhook email address.
+
+  ### Filter by warehouse or category (optional)
+
+  If you only want alerts for specific warehouses or product categories, use the **Scope** filters to restrict which products trigger notifications.
+
+  ### Save your settings
+
+  Click **Save Notification Settings**. A test email is sent to all recipients to confirm delivery.
+</Steps>
+
+<Note>
+  Alert emails include the product name, SKU, warehouse, current available quantity, and a direct link to the product record — so the right person can act immediately without digging through the dashboard.
+</Note>
+
+## Check Stock Levels via API
+
+Query real-time stock levels programmatically using the `GET /inventory` endpoint.
+
+### Request
+
+```bash
+curl -X GET "https://api.blinks.it/v1/inventory?warehouse_id=wh_123" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Omit `warehouse_id` to retrieve stock across all warehouses. You can also filter by `sku`, `category`, or `status`:
+
+```bash
+curl -X GET "https://api.blinks.it/v1/inventory?status=low_stock&category=Apparel" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Sample Response
+
+```json
+{
+  "data": [
+    {
+      "sku": "TSHIRT-L-BLU",
+      "product_name": "Classic Crew Tee",
+      "warehouse_id": "wh_123",
+      "warehouse_name": "East Coast DC",
+      "available_quantity": 12,
+      "reserved_quantity": 3,
+      "on_order_quantity": 50,
+      "reorder_point": 15,
+      "status": "low_stock"
+    },
+    {
+      "sku": "TOTE-NAT-OS",
+      "product_name": "Canvas Tote Bag",
+      "warehouse_id": "wh_123",
+      "warehouse_name": "East Coast DC",
+      "available_quantity": 84,
+      "reserved_quantity": 0,
+      "on_order_quantity": 0,
+      "reorder_point": 25,
+      "status": "in_stock"
+    }
+  ],
+  "meta": {
+    "total": 2,
+    "page": 1,
+    "per_page": 50
+  }
+}
+```
+
+### Response field reference
+
+| Field | Description |
+|---|---|
+| `available_quantity` | Units on hand that can be allocated to new sales orders right now. |
+| `reserved_quantity` | Units already allocated to confirmed but unfulfilled sales orders. |
+| `on_order_quantity` | Units on open purchase orders that have not yet been received. |
+
+<Tip>
+  `available_quantity` + `reserved_quantity` gives you the total physical stock on hand. Use `on_order_quantity` to project your near-future stock position when planning reorder timing.
+</Tip>

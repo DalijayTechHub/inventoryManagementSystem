@@ -1,0 +1,322 @@
+---
+title: "Warehouses API — Manage Storage Locations via REST"
+sidebarTitle: "Warehouses"
+description: "REST API endpoints to create and manage warehouses, zones, and bin locations in Blinks Inventory."
+---
+
+The Warehouses API lets you model every physical location in your fulfilment network. Create warehouses for each storage site, assign a default location for new inventory, and retrieve the zones and bin locations configured within each building. Warehouse IDs are referenced by the Inventory and Orders APIs, so set up your warehouses before creating stock records or purchase orders.
+
+---
+
+## List all warehouses
+
+Retrieve a paginated list of all warehouses in your account.
+
+```bash
+curl -X GET "https://api.blinks.it/v1/warehouses?page=1&per_page=20" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Query parameters
+
+<ParamField query="page" type="integer" default="1">
+  The page number to return.
+</ParamField>
+
+<ParamField query="per_page" type="integer" default="20">
+  Number of warehouses to return per page. Maximum is 100.
+</ParamField>
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "wh_01A2B3C4D5E6F7G8H9I0J1K2",
+      "name": "East Coast Fulfillment",
+      "address": {
+        "line1": "100 Logistics Blvd",
+        "city": "Newark",
+        "state": "NJ",
+        "postal_code": "07101",
+        "country": "US"
+      },
+      "timezone": "America/New_York",
+      "is_default": true,
+      "created_at": "2023-11-01T09:00:00Z"
+    },
+    {
+      "id": "wh_02B3C4D5E6F7G8H9I0J1K2L3",
+      "name": "West Coast Fulfillment",
+      "address": {
+        "line1": "500 Harbor Way",
+        "city": "Los Angeles",
+        "state": "CA",
+        "postal_code": "90001",
+        "country": "US"
+      },
+      "timezone": "America/Los_Angeles",
+      "is_default": false,
+      "created_at": "2023-12-10T12:00:00Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "per_page": 20,
+    "total": 2
+  }
+}
+```
+
+<ResponseField name="data" type="array">
+  Array of warehouse objects.
+
+  <Expandable title="Warehouse object fields">
+    <ResponseField name="id" type="string">
+      Unique identifier for the warehouse.
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Display name of the warehouse.
+    </ResponseField>
+    <ResponseField name="address" type="object">
+      Physical address of the warehouse, including `line1`, `city`, `state`, `postal_code`, and `country`.
+    </ResponseField>
+    <ResponseField name="timezone" type="string">
+      IANA timezone string used to localise operational timestamps for this warehouse.
+    </ResponseField>
+    <ResponseField name="is_default" type="boolean">
+      When `true`, this warehouse is used as the default location for new inventory records when no `warehouse_id` is specified.
+    </ResponseField>
+    <ResponseField name="created_at" type="string">
+      ISO 8601 timestamp of when the warehouse was created.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## Create a warehouse
+
+Add a new warehouse to your account. Only `name` is required — you can add address details and configure zones later.
+
+```bash
+curl -X POST "https://api.blinks.it/v1/warehouses" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Midwest Distribution Center",
+    "address": {
+      "line1": "200 Industrial Pkwy",
+      "city": "Chicago",
+      "state": "IL",
+      "postal_code": "60601",
+      "country": "US"
+    },
+    "timezone": "America/Chicago",
+    "is_default": false
+  }'
+```
+
+### Request body
+
+<ParamField body="name" type="string" required>
+  The display name for the warehouse. Must be unique within your account.
+</ParamField>
+
+<ParamField body="address" type="object">
+  Physical address of the warehouse. Accepts `line1`, `line2`, `city`, `state`, `postal_code`, and `country`.
+</ParamField>
+
+<ParamField body="timezone" type="string">
+  IANA timezone string for the warehouse (e.g. `America/Chicago`). Defaults to your account's base timezone.
+</ParamField>
+
+<ParamField body="is_default" type="boolean">
+  Set to `true` to make this the default warehouse. Only one warehouse can be the default at a time — setting this to `true` will unset any existing default.
+</ParamField>
+
+### Response
+
+Returns the newly created warehouse object.
+
+```json
+{
+  "data": {
+    "id": "wh_03C4D5E6F7G8H9I0J1K2L3M4",
+    "name": "Midwest Distribution Center",
+    "address": {
+      "line1": "200 Industrial Pkwy",
+      "city": "Chicago",
+      "state": "IL",
+      "postal_code": "60601",
+      "country": "US"
+    },
+    "timezone": "America/Chicago",
+    "is_default": false,
+    "created_at": "2024-05-20T16:45:00Z"
+  }
+}
+```
+
+---
+
+## Get a warehouse
+
+Retrieve the full details of a single warehouse by its ID, including its configured zones.
+
+```bash
+curl -X GET "https://api.blinks.it/v1/warehouses/wh_03C4D5E6F7G8H9I0J1K2L3M4" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The unique ID of the warehouse to retrieve.
+</ParamField>
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "wh_03C4D5E6F7G8H9I0J1K2L3M4",
+    "name": "Midwest Distribution Center",
+    "address": {
+      "line1": "200 Industrial Pkwy",
+      "city": "Chicago",
+      "state": "IL",
+      "postal_code": "60601",
+      "country": "US"
+    },
+    "timezone": "America/Chicago",
+    "is_default": false,
+    "created_at": "2024-05-20T16:45:00Z",
+    "zones": [
+      {
+        "id": "zone_01X2Y3Z4A5B6C7D8E9F0G1H2",
+        "name": "Receiving",
+        "bin_count": 24
+      },
+      {
+        "id": "zone_02Y3Z4A5B6C7D8E9F0G1H2I3",
+        "name": "Bulk Storage",
+        "bin_count": 120
+      }
+    ]
+  }
+}
+```
+
+<ResponseField name="zones" type="array">
+  List of zones configured within this warehouse.
+
+  <Expandable title="Zone object fields">
+    <ResponseField name="id" type="string">
+      Unique identifier for the zone.
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Display name of the zone (e.g. "Receiving", "Bulk Storage").
+    </ResponseField>
+    <ResponseField name="bin_count" type="integer">
+      Number of bin locations configured within this zone.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## Update a warehouse
+
+Update the name, address, timezone, or default status of an existing warehouse. Send only the fields you want to change.
+
+```bash
+curl -X PUT "https://api.blinks.it/v1/warehouses/wh_03C4D5E6F7G8H9I0J1K2L3M4" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Midwest Distribution Center — Chicago",
+    "is_default": true
+  }'
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The unique ID of the warehouse to update.
+</ParamField>
+
+### Request body
+
+<ParamField body="name" type="string">
+  Updated display name for the warehouse.
+</ParamField>
+
+<ParamField body="address" type="object">
+  Updated physical address. Accepts the same fields as on create.
+</ParamField>
+
+<ParamField body="timezone" type="string">
+  Updated IANA timezone string.
+</ParamField>
+
+<ParamField body="is_default" type="boolean">
+  Set to `true` to make this warehouse the new default.
+</ParamField>
+
+### Response
+
+Returns the full updated warehouse object.
+
+```json
+{
+  "data": {
+    "id": "wh_03C4D5E6F7G8H9I0J1K2L3M4",
+    "name": "Midwest Distribution Center — Chicago",
+    "address": {
+      "line1": "200 Industrial Pkwy",
+      "city": "Chicago",
+      "state": "IL",
+      "postal_code": "60601",
+      "country": "US"
+    },
+    "timezone": "America/Chicago",
+    "is_default": true,
+    "created_at": "2024-05-20T16:45:00Z"
+  }
+}
+```
+
+---
+
+## Delete a warehouse
+
+Permanently remove a warehouse from your account.
+
+<Note>
+  You cannot delete a warehouse that currently holds any inventory. Use the [Inventory Adjustments API](/api-reference/inventory#adjust-stock-quantity) to move or zero out all stock in the warehouse first, then retry the delete.
+</Note>
+
+```bash
+curl -X DELETE "https://api.blinks.it/v1/warehouses/wh_03C4D5E6F7G8H9I0J1K2L3M4" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The unique ID of the warehouse to delete.
+</ParamField>
+
+### Response
+
+Returns `204 No Content` on success with an empty body.
+
+```json
+
+```
+
+<Tip>
+  Before deleting a warehouse, check whether any open purchase orders or sales orders reference it. You'll need to reassign or close those orders first to avoid data integrity errors.
+</Tip>

@@ -1,0 +1,176 @@
+---
+title: "Stock Movements: How Inventory Changes Are Tracked"
+sidebarTitle: "Stock Movements"
+description: "Blinks Inventory records every stock change as a movement — receipts, shipments, adjustments, and transfers — giving you a complete audit trail."
+---
+
+Every time inventory changes in Blinks — a delivery arrives, an order ships, a count reveals a discrepancy, or stock moves between facilities — that change is recorded as a **stock movement**. Movements are the foundational record-keeping mechanism of the platform: they are immutable, timestamped, and user-attributed, which means you always have a precise, trustworthy history of how every unit of stock got to where it is. There is no silent update to a quantity field; every change has a paper trail.
+
+## What Is a Stock Movement?
+
+A stock movement is a record that documents a quantity change for a specific SKU at a specific location. It captures:
+
+- **Type** — the nature of the change (Receipt, Shipment, Adjustment, or Transfer)
+- **SKU** — the variant whose quantity changed
+- **Location** — the warehouse or bin where the change occurred
+- **Quantity** — the number of units affected (positive for increases, negative for decreases)
+- **Reference** — an optional or automatic link to the source document (purchase order ID, sales order ID, or a manual reference)
+- **Reason** — a human-readable explanation of why the movement occurred
+- **Date and time** — when the movement was recorded (in your organization's timezone)
+- **User** — the team member who created or triggered the movement
+
+Movements are **append-only** — you cannot edit or delete a movement after it is created. If a movement was made in error, you correct it by creating a new movement that reverses the effect, which itself becomes part of the audit trail.
+
+## Types of Stock Movements
+
+<Tabs>
+  <Tab title="Receipt">
+    A **Receipt** records stock arriving at a warehouse from an external source — typically a supplier delivery against a purchase order.
+
+    **What it does to quantities:**
+    - Increases `available` at the receiving location by the received quantity.
+    - Decreases `on_order` by the same amount if linked to a purchase order.
+
+    **When it's created:**
+    - Automatically when you process a "Receive Stock" action against an open purchase order.
+    - Manually when stock arrives without a prior purchase order (for example, a sample delivery or a consignment return).
+
+    **Example receipt record:**
+
+    ```json
+    {
+      "type": "receipt",
+      "sku": "TSHIRT-LG-BLU",
+      "warehouse_id": "wh_01j9kx1a0p000000example01",
+      "quantity": 50,
+      "reference": "PO-2024-00142",
+      "reason": "Supplier delivery — full quantity received",
+      "created_at": "2024-11-14T10:15:00Z",
+      "created_by": "jane.smith@acme.com"
+    }
+    ```
+
+    <Note>
+      Partial receipts are supported. If a supplier delivers only part of an order, record a receipt for the quantity actually received. The purchase order stays open for the remainder.
+    </Note>
+  </Tab>
+
+  <Tab title="Shipment">
+    A **Shipment** records stock leaving a warehouse for a customer or consignee — typically against a confirmed sales order.
+
+    **What it does to quantities:**
+    - Decreases `reserved` at the shipping location by the shipped quantity (the stock was previously moved from `available` to `reserved` when the order was confirmed).
+    - The net effect is that total on-hand stock (`available + reserved`) decreases.
+
+    **When it's created:**
+    - Automatically when you process a "Ship" action against an open sales order.
+    - Manually when stock leaves without a prior sales order (for example, a sample dispatch or a goodwill replacement).
+
+    **Example shipment record:**
+
+    ```json
+    {
+      "type": "shipment",
+      "sku": "TSHIRT-LG-BLU",
+      "warehouse_id": "wh_01j9kx1a0p000000example01",
+      "quantity": -5,
+      "reference": "SO-2024-00381",
+      "reason": "Customer order fulfilled",
+      "created_at": "2024-11-14T14:42:00Z",
+      "created_by": "fulfillment-api"
+    }
+    ```
+  </Tab>
+
+  <Tab title="Adjustment">
+    An **Adjustment** is a manual correction to bring recorded stock in line with the physical reality of what is actually on the shelf. Adjustments are used when a discrepancy exists that cannot be explained by a missing receipt or shipment.
+
+    **What it does to quantities:**
+    - Increases or decreases `available` at the specified location by the adjustment quantity.
+
+    **Common reasons for adjustments:**
+    - **Shrinkage** — unexplained loss, often from minor theft or administrative error.
+    - **Damage** — items found to be unsellable during a stock check.
+    - **Cycle count correction** — a physical count reveals more or fewer units than the system shows.
+    - **Write-off** — deliberate removal of obsolete or expired stock.
+    - **Inventory initialization** — setting opening stock levels when you first migrate to Blinks.
+
+    **Example adjustment record:**
+
+    ```json
+    {
+      "type": "adjustment",
+      "sku": "TSHIRT-LG-BLU",
+      "warehouse_id": "wh_01j9kx1a0p000000example01",
+      "quantity": -3,
+      "reference": "CYCLECOUNT-NOV14",
+      "reason": "Cycle count: 3 units missing, presumed shrinkage",
+      "created_at": "2024-11-14T16:00:00Z",
+      "created_by": "warehouse.manager@acme.com"
+    }
+    ```
+
+    <Warning>
+      Always record a clear reason on every adjustment. Adjustments without reasons make it impossible to investigate recurring discrepancies or satisfy an external audit.
+    </Warning>
+  </Tab>
+
+  <Tab title="Transfer">
+    A **Transfer** records stock moving from one location to another within your organization — between warehouses, between zones, or between bin locations within the same warehouse.
+
+    **What it does to quantities:**
+    - Decreases `available` at the source location by the transferred quantity.
+    - Increases `available` at the destination location by the same quantity.
+
+    **When it's used:**
+    - Rebalancing stock between warehouses to meet regional demand.
+    - Moving goods from a Receiving zone to their permanent bin location after a receipt.
+    - Moving items to a Quarantine or Returns virtual warehouse for inspection.
+    - Consolidating slow-moving stock from multiple locations to one.
+
+    **Example transfer record:**
+
+    ```json
+    {
+      "type": "transfer",
+      "sku": "TSHIRT-LG-BLU",
+      "source_warehouse_id": "wh_01j9kx1a0p000000example01",
+      "destination_warehouse_id": "wh_01j9kx1a0p000000example02",
+      "quantity": 20,
+      "reference": "TRF-2024-00028",
+      "reason": "Rebalance: south warehouse running low ahead of peak",
+      "created_at": "2024-11-15T08:30:00Z",
+      "created_by": "ops.planner@acme.com"
+    }
+    ```
+
+    <Note>
+      In-transit quantities are not automatically tracked during a transfer — the quantity leaves the source immediately and arrives at the destination immediately in the system. If you need to model goods that are physically in transit, use a virtual warehouse as the intermediate destination.
+    </Note>
+  </Tab>
+</Tabs>
+
+## Viewing Movement History
+
+You can access movement history from several places in the dashboard:
+
+- **Product detail page** → **Movements tab** — shows all movements for a specific SKU, across all locations, in reverse chronological order.
+- **Warehouse detail page** → **Movements tab** — shows all movements that affected stock at a specific warehouse.
+- **Movements** section in the sidebar — a global movements log with filters for type, SKU, warehouse, date range, and user.
+
+Each movement record in the history is clickable. Opening a movement shows the full record including the linked order (if any), the before and after quantity at the affected location, and the user who created it.
+
+You can export movement history to CSV from any movements view using the **Export** button in the top right. Exports respect whatever filters you have applied, so you can export the complete history for a single SKU or a filtered set of adjustments for an audit.
+
+## Why the Audit Trail Matters
+
+An accurate, immutable audit trail is not just a nice-to-have — for many businesses it is a regulatory and operational necessity.
+
+- **Discrepancy investigation** — when stock does not match expectation, the movement history tells you exactly when the quantity changed, what caused it, and who was responsible. You can trace any current quantity back to its first movement.
+- **External audits** — financial auditors and compliance teams need evidence that inventory records reflect real-world movements. Every change in Blinks has a timestamp and a user, satisfying standard audit requirements.
+- **Shrinkage analysis** — by reviewing adjustments over time, you can identify patterns in where and when stock losses occur and take corrective action.
+- **Integration debugging** — if an integration updates quantities incorrectly, the movement log shows exactly what the API wrote, when, and under which API key, making debugging straightforward.
+
+<Tip>
+  Run a monthly review of all Adjustment movements. Filter the global Movements log by type `adjustment` and the previous calendar month. A high volume of unexplained shrinkage adjustments is an early warning sign of a process or security problem in your warehouse.
+</Tip>
