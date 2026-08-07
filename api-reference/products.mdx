@@ -1,7 +1,7 @@
 ---
 title: "Products API — Manage Your Product Catalog via REST"
 sidebarTitle: "Products"
-description: "REST API endpoints for creating, listing, updating, and deleting products and variants in Blinks Inventory."
+description: "Create products, update pricing, manage SKUs and barcodes, and remove catalog entries using the Blinks Inventory products REST API endpoints."
 ---
 
 The Products API gives you full control over your product catalog. Use it to create new SKUs, update pricing and reorder thresholds, retrieve detailed product records including variant breakdowns, and remove products that are no longer needed. All requests must include your API key in the `Authorization` header, and all responses are returned as JSON.
@@ -381,11 +381,7 @@ curl -X DELETE "https://api.blinks.it/v1/products/prod_03K0Z4M1O5P6Q7R8S9T0U1V2W
 
 ### Response
 
-Returns `204 No Content` on success with an empty body.
-
-```json
-
-```
+Returns `204 No Content` on success with an empty response body.
 
 <Tip>
   If you want to hide a product from active use without deleting it, consider updating its `category` to an archived category rather than deleting it outright.

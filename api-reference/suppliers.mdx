@@ -1,7 +1,7 @@
 ---
-title: "Suppliers API — Manage Supplier Records via REST"
+title: "Suppliers API — Manage Your Supplier Records via REST"
 sidebarTitle: "Suppliers"
-description: "REST API endpoints to create, list, and manage suppliers in Blinks Inventory, including contact details and lead times."
+description: "Create and manage supplier records, store contact details and lead times, and set preferred currencies for purchase orders in Blinks Inventory."
 ---
 
 The Suppliers API lets you maintain a directory of the vendors you source products from. Store contact information, preferred currency, and average lead times for each supplier so that Blinks Inventory can surface accurate reorder estimates and auto-populate purchase order fields. Supplier IDs are referenced in the [Purchase Orders API](/api-reference/orders), so create your supplier records before raising POs.
@@ -305,11 +305,7 @@ curl -X DELETE "https://api.blinks.it/v1/suppliers/sup_02B3C4D5E6F7G8H9I0J1K2L3"
 
 ### Response
 
-Returns `204 No Content` on success with an empty body.
-
-```json
-
-```
+Returns `204 No Content` on success with an empty response body.
 
 <Tip>
   If you no longer work with a supplier but want to keep them visible in historical reports, consider updating their `name` to include a prefix like `[INACTIVE]` rather than deleting the record outright.

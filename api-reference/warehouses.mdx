@@ -1,7 +1,7 @@
 ---
 title: "Warehouses API — Manage Storage Locations via REST"
 sidebarTitle: "Warehouses"
-description: "REST API endpoints to create and manage warehouses, zones, and bin locations in Blinks Inventory."
+description: "Use the Blinks Inventory REST API to create and manage warehouses, configure your default storage location, and retrieve zone and bin-location details."
 ---
 
 The Warehouses API lets you model every physical location in your fulfilment network. Create warehouses for each storage site, assign a default location for new inventory, and retrieve the zones and bin locations configured within each building. Warehouse IDs are referenced by the Inventory and Orders APIs, so set up your warehouses before creating stock records or purchase orders.
@@ -311,11 +311,7 @@ curl -X DELETE "https://api.blinks.it/v1/warehouses/wh_03C4D5E6F7G8H9I0J1K2L3M4"
 
 ### Response
 
-Returns `204 No Content` on success with an empty body.
-
-```json
-
-```
+Returns `204 No Content` on success with an empty response body.
 
 <Tip>
   Before deleting a warehouse, check whether any open purchase orders or sales orders reference it. You'll need to reassign or close those orders first to avoid data integrity errors.

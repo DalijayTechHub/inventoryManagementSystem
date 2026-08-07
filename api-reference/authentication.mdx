@@ -1,7 +1,7 @@
 ---
-title: "Authenticate API Requests to Blinks Inventory"
+title: "How to Authenticate Requests to the Blinks Inventory API"
 sidebarTitle: "Authentication"
-description: "Generate an API key from your Blinks Inventory dashboard and pass it as a Bearer token to authenticate every API request."
+description: "Generate an API key from your Blinks Inventory dashboard and include it as a Bearer token in the Authorization header to authenticate every request."
 ---
 
 Every request to the Blinks Inventory API must be authenticated using an API key. Keys are generated directly from your dashboard, scoped to the level of access your integration requires, and passed as a Bearer token in the `Authorization` header. There are no sessions or cookies — each request is independently authenticated.
@@ -57,7 +57,7 @@ curl https://api.blinks.it/v1/products \
 
 The header format is always:
 
-```
+```text
 Authorization: Bearer YOUR_API_KEY
 ```
 

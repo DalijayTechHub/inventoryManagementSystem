@@ -1,7 +1,7 @@
 ---
 title: "Inventory Reports and Analytics in Blinks Inventory"
 sidebarTitle: "Reports"
-description: "Generate stock valuation, movement history, reorder, and supplier performance reports to make data-driven inventory decisions."
+description: "Generate stock valuation, movement history, reorder, and supplier performance reports in Blinks Inventory to make data-driven decisions."
 ---
 
 Blinks Inventory collects data from every stock movement, purchase order, and sales order in your account and surfaces it through a set of purpose-built reports. Whether you need to know the current value of your stock for an accounting period, identify which products are about to run out, or evaluate which suppliers are delivering on time, the Reports section gives you the data in seconds — either on screen, as a CSV, or as a scheduled email delivered to your inbox automatically.
@@ -13,19 +13,19 @@ Click **Reports** in the left navigation to open the reports hub. The hub displa
 ## Available Reports
 
 <CardGroup cols={2}>
-  <Card title="Stock Valuation" icon="circle-dollar-to-slot">
+  <Card title="Stock Valuation" icon="circle-dollar-to-slot" href="api-reference/inventory">
     Shows the current monetary value of your inventory, calculated as on-hand quantity multiplied by cost price (using weighted average cost). Filter by product, category, or warehouse to see valuation slices. Use this report for balance sheet preparation, insurance documentation, or period-end accounting.
   </Card>
-  <Card title="Movement History" icon="arrows-up-down">
+  <Card title="Movement History" icon="arrows-up-down" href="concepts/stock-movements">
     A chronological log of every stock change in your account over a date range you define. Each row shows the movement type (purchase receipt, sales shipment, adjustment, transfer), the quantity delta, the before and after quantities, and the user or API key responsible. Essential for investigating discrepancies or auditing stock flows.
   </Card>
-  <Card title="Reorder Report" icon="triangle-exclamation">
+  <Card title="Reorder Report" icon="triangle-exclamation" href="guides/purchase-orders">
     Lists every product whose available quantity is at or below its reorder point, grouped by supplier for easy purchasing. Use this report during your weekly replenishment run to create purchase orders for everything that needs restocking in one session. Filter by warehouse to generate location-specific reorder lists.
   </Card>
-  <Card title="Purchase Order Report" icon="truck">
+  <Card title="Purchase Order Report" icon="truck" href="guides/purchase-orders">
     Summarizes all purchase orders over a selected date range, including order value, expected vs. actual delivery dates, and receipt status. Use the supplier performance view to see on-time delivery rates, average lead times, and total spend by supplier — valuable data when renegotiating terms or evaluating new suppliers.
   </Card>
-  <Card title="Sales Order Report" icon="bag-shopping">
+  <Card title="Sales Order Report" icon="bag-shopping" href="guides/sales-orders">
     Shows all sales orders and their fulfillment outcomes over a date range. Includes metrics like fulfillment rate (orders shipped on time vs. total orders), backorder rate, and order value by customer or product. Use this report to identify your fastest-moving SKUs and spot patterns in stockouts that are costing you sales.
   </Card>
 </CardGroup>
